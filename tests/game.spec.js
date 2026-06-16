@@ -146,3 +146,25 @@ test("player can start and finish the main route", async ({ page }) => {
   await expect(page.locator("#endingStamps")).toContainText("You Leave Named");
   await expect(page.locator("#endingStamps")).toContainText("Unknown ending");
 });
+
+test("mobile layout keeps core controls usable", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("./");
+
+  await page.getByRole("link", { name: "Begin Shift" }).click();
+  await expect(page.locator("#startScreen")).toHaveClass(/is-hidden/);
+  await expect(action(page, "lost basket")).toBeVisible();
+
+  await page.getByRole("button", { name: "Show hint" }).click();
+  await expect(page.locator(".modal")).toContainText("breathing washer");
+  await page.locator(".modal").getByRole("button", { name: "Step Back" }).click();
+
+  await action(page, "rules poster").click();
+  await expect(page.locator("#message")).toContainText("Rule 7");
+
+  const layout = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(layout.scrollWidth).toBeLessThanOrEqual(layout.clientWidth);
+});
