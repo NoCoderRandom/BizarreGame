@@ -168,3 +168,65 @@ test("mobile layout keeps core controls usable", async ({ page }) => {
   }));
   expect(layout.scrollWidth).toBeLessThanOrEqual(layout.clientWidth);
 });
+
+test("player can find the payphone ending", async ({ page }) => {
+  await page.goto("./");
+
+  await page.getByRole("link", { name: "Begin Shift" }).click();
+  await action(page, "lost basket").click();
+  await action(page, "breathing washer").click();
+  await action(page, "soap machine").click();
+
+  await action(page, "lost office").click();
+  await expect(page.locator("#roomTitle")).toHaveText("Lost Office");
+  await action(page, "key rack").click();
+  await item(page, "Brass Key").click();
+  await action(page, "claim safe").click();
+
+  const safeModal = page.locator(".modal");
+  const safeDigits = safeModal.locator(".dial");
+  await safeDigits.nth(0).click();
+  await safeDigits.nth(0).click();
+  await safeDigits.nth(1).click();
+  for (let i = 0; i < 7; i += 1) {
+    await safeDigits.nth(2).click();
+  }
+  await safeModal.getByRole("button", { name: "Open Safe" }).click();
+
+  await action(page, "lobby window").click();
+  await item(page, "Black Soap").click();
+  await action(page, "red back door").click();
+  await item(page, "Soot").click();
+  await action(page, "central dryer").click();
+  await action(page, "dangling tags").click();
+
+  await action(page, "three-note panel").click();
+  const toneModal = page.locator(".modal");
+  const dials = toneModal.locator(".dial");
+  await dials.nth(1).click();
+  await dials.nth(1).click();
+  await dials.nth(2).click();
+  await toneModal.getByRole("button", { name: "Set Dials" }).click();
+
+  await action(page, "lobby door").click();
+  await action(page, "radio static").click();
+  await action(page, "red back door").click();
+  await action(page, "name basin").click();
+
+  const nameModal = page.locator(".modal");
+  await nameModal.getByRole("button", { name: "Rust" }).click();
+  await nameModal.getByRole("button", { name: "Voice" }).click();
+  await nameModal.getByRole("button", { name: "Vowel Slip" }).click();
+  await nameModal.getByRole("button", { name: "Wash Name" }).click();
+
+  await expect(page.locator("#roomTitle")).toHaveText("Lobby");
+  await action(page, "front exit").click();
+  await expect(page.locator("#roomTitle")).toHaveText("Rain Alley");
+  await action(page, "payphone").click();
+  await expect(page.locator(".ending-copy h2")).toHaveText("You Call Yourself");
+  await expect(page.locator(".ending-record")).toContainText("Ending recorded 1/3");
+
+  await page.goto("./");
+  await expect(page.locator("#endingStamps")).toContainText("Endings found 1/3");
+  await expect(page.locator("#endingStamps")).toContainText("You Call Yourself");
+});
