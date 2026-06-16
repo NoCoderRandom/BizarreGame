@@ -37,6 +37,7 @@ const defaultFlags = {
     ledgerRead: false,
     safeOpen: false,
     sinkRinsed: false,
+    valveTurned: false,
     radioHeard: false,
   radioCaptured: false,
   shrineAwake: false,
@@ -113,6 +114,7 @@ const clueText = {
   staticEnding: "The rules poster warns that high static makes the rain fray names.",
   sinkRinse: "An office notice says cloudy water can rinse static from claimed letters once.",
   endingFork: "The alley has more than one exit: rain, phone, and whatever static makes of you.",
+  boilerPressure: "The boiler gauge says static is pressure looking for a mouth.",
 };
 
 const staticApparitions = {
@@ -130,6 +132,11 @@ const staticApparitions = {
     "heat makes the walls pronounce you",
     "the dryers are almost singing",
     "do not give it a better spelling",
+  ],
+  boiler: [
+    "pressure is only a name with nowhere to go",
+    "turn nothing you cannot forgive",
+    "the pipes are full of almost-words",
   ],
   alley: [
     "rain audits the body",
@@ -547,6 +554,15 @@ const scenes = {
         },
       },
       {
+        id: "boilerHatch",
+        label: "boiler hatch",
+        x: 88,
+        y: 48,
+        w: 11,
+        h: 27,
+        click: () => go("boiler"),
+      },
+      {
         id: "altar",
         label: "name basin",
         x: 39,
@@ -564,6 +580,70 @@ const scenes = {
             return;
           }
           nudge("The basin wants a tag, rust, a voice, and the missing vowels. It is not shy about wanting.");
+        },
+      },
+    ],
+  },
+  boiler: {
+    title: "Boiler Closet",
+    image: "assets/images/boiler-closet.webp",
+    alt: "A cramped boiler closet with rusted tanks, sweating pipes, a pressure gauge, red valve, and a hatch back to the dryers.",
+    ambience: "boiler",
+    entry:
+      "The boiler closet is hotter than a confession and twice as badly ventilated.",
+    hotspots: [
+      {
+        id: "shrineDoor",
+        label: "dryer shrine",
+        x: 0,
+        y: 16,
+        w: 14,
+        h: 56,
+        click: () => go("shrine"),
+      },
+      {
+        id: "gauge",
+        label: "pressure gauge",
+        x: 52,
+        y: 29,
+        w: 9,
+        h: 15,
+        click: () => {
+          rememberClue("boilerPressure");
+          say("The gauge needle points to a number that is not printed there. Static is pressure looking for a mouth.");
+        },
+      },
+      {
+        id: "pressureValve",
+        label: "pressure valve",
+        x: 70,
+        y: 36,
+        w: 21,
+        h: 36,
+        click: () => {
+          if (state.flags.valveTurned) {
+            say("The red valve will not turn again. It has already given back what it could.");
+            return;
+          }
+          if (state.static <= 8) {
+            say("The red valve is cool. There is not enough static pressure to bleed from the pipes.");
+            return;
+          }
+          state.flags.valveTurned = true;
+          lowerStatic(14);
+          whisper("pressure gives back");
+          say("You turn the red valve. Steam coughs into the ceiling, and the room gives some of your static back.");
+        },
+      },
+      {
+        id: "lintClumps",
+        label: "lint clumps",
+        x: 29,
+        y: 69,
+        w: 37,
+        h: 20,
+        click: () => {
+          say("The lint clumps are packed with old pocket dust, hairpins, and a receipt for a childhood you do not remember buying.");
         },
       },
     ],
@@ -716,6 +796,7 @@ class AudioEngine {
       lobby: { noise: 0.035, freq: 620, a: 53, b: 83 },
       office: { noise: 0.04, freq: 740, a: 59, b: 118 },
       shrine: { noise: 0.058, freq: 460, a: 38, b: 71 },
+      boiler: { noise: 0.065, freq: 390, a: 44, b: 67 },
       alley: { noise: 0.044, freq: 920, a: 47, b: 94 },
     }[this.scene];
   }
@@ -1628,6 +1709,7 @@ function animate(time = 0) {
     lobby: "147,217,178",
     office: "214,167,77",
     shrine: "242,94,55",
+    boiler: "221,112,58",
     alley: "76,199,206",
   }[state.scene];
 

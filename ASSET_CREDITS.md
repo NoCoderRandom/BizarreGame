@@ -8,6 +8,7 @@ The scene backgrounds and puzzle close-ups in `assets/images/` were generated fo
 - `dryer-shrine.webp`
 - `rain-alley.webp`
 - `lost-office.webp`
+- `boiler-closet.webp`
 - `claim-safe-closeup.webp`
 - `name-basin-closeup.webp`
 

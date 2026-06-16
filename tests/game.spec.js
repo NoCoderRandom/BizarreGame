@@ -104,6 +104,15 @@ test("player can start and finish the main route", async ({ page }) => {
   await action(page, "red back door").click();
   await expect(page.locator("#roomTitle")).toHaveText("Back Room");
 
+  await action(page, "boiler hatch").click();
+  await expect(page.locator("#roomTitle")).toHaveText("Boiler Closet");
+  await action(page, "pressure gauge").click();
+  await expect(page.locator("#message")).toContainText("Static is pressure");
+  await action(page, "pressure valve").click();
+  await expect(page.locator(".meter")).toHaveAttribute("aria-label", "Static pressure 8 percent");
+  await action(page, "dryer shrine").click();
+  await expect(page.locator("#roomTitle")).toHaveText("Back Room");
+
   await item(page, "Soot").click();
   await action(page, "central dryer").click();
   await action(page, "dangling tags").click();
