@@ -1714,11 +1714,14 @@ function openNamePuzzle() {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "stain-choice";
+        button.setAttribute("aria-label", meta.label);
+        button.setAttribute("aria-pressed", "false");
         button.style.borderColor = meta.color;
         button.innerHTML = `<span>${chosen.includes(item) ? "placed" : "stain"}</span>${meta.label}`;
         bindActivation(button, () => {
           if (chosen.includes(item)) return;
           chosen.push(item);
+          button.setAttribute("aria-pressed", "true");
           button.innerHTML = `<span>placed</span>${meta.label}`;
           audio.blip(220 + chosen.length * 110, 0.18, "triangle", 0.12);
         });

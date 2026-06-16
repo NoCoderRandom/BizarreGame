@@ -182,6 +182,7 @@ test("player can start and finish the main route", async ({ page }) => {
   const nameModal = page.locator(".modal");
   await expect(nameModal).toContainText("Name Basin");
   await expect(nameModal.locator(".modal-art")).toHaveAttribute("src", /name-basin-closeup\.webp/);
+  await expect(nameModal.getByRole("button", { name: "Rust" })).toHaveAttribute("aria-label", "Rust");
   await nameModal.getByRole("button", { name: "Rust" }).click();
   await nameModal.getByRole("button", { name: "Voice" }).click();
   await nameModal.getByRole("button", { name: "Vowel Slip" }).click();
