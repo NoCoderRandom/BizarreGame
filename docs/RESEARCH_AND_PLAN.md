@@ -51,6 +51,7 @@ Planned production slice:
 - Original close-up art for the safe and name basin puzzle modals.
 - Optimized WebP art assets for faster GitHub Pages loading.
 - Large, accessible hotspot buttons.
+- Dynamic descriptive alt text for each scene image.
 - Keyboard shortcuts for hint, journal, reveal, and mute controls.
 - Inventory with selectable strange items.
 - Inventory inspection text that doubles as diegetic hinting.

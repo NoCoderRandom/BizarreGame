@@ -50,6 +50,7 @@ test("player can start and finish the main route", async ({ page }) => {
 
   await action(page, "lost office").click();
   await expect(page.locator("#roomTitle")).toHaveText("Lost Office");
+  await expect(page.locator("#sceneImage")).toHaveAttribute("alt", /lost-and-found office/);
   await action(page, "claim ledger").click();
   await expect(page.locator("#objective")).toContainText("missing vowels");
   await action(page, "stained notice").click();

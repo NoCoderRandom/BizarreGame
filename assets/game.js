@@ -161,6 +161,7 @@ const scenes = {
   lobby: {
     title: "Lobby",
     image: "assets/images/laundromat-lobby.webp",
+    alt: "A dim green laundromat with rows of washers, wet floors, a red back door, and a lonely laundry basket.",
     ambience: "lobby",
     entry:
       "The lobby smells like rainwater, hot lint, and somebody else's childhood.",
@@ -318,6 +319,7 @@ const scenes = {
   office: {
     title: "Lost Office",
     image: "assets/images/lost-office.webp",
+    alt: "A cramped lost-and-found office with a claim ledger, key rack, cracked mirror, safe, and cloudy sink.",
     ambience: "office",
     entry:
       "The lost-and-found office catalogs things people swear they never owned.",
@@ -448,6 +450,7 @@ const scenes = {
   shrine: {
     title: "Back Room",
     image: "assets/images/dryer-shrine.webp",
+    alt: "A hot back room arranged like a dryer shrine, with hanging tags, a tone panel, rust bucket, and name basin.",
     ambience: "shrine",
     entry:
       "Heat rolls over you. The dryers are arranged like an altar that learned plumbing.",
@@ -568,6 +571,7 @@ const scenes = {
   alley: {
     title: "Rain Alley",
     image: "assets/images/rain-alley.webp",
+    alt: "A blue dawn alley with rain, a payphone, a storm drain, a laundromat door, and sheets spiraling overhead.",
     ambience: "alley",
     entry:
       "The alley is waiting in blue dawn. The sheets above turn slowly around an impossible drain in the sky.",
@@ -1226,6 +1230,7 @@ function renderScene() {
   sceneImage.style.opacity = "0";
   window.setTimeout(() => {
     sceneImage.src = scene.image;
+    sceneImage.alt = scene.alt;
     sceneImage.style.opacity = "1";
   }, 120);
   hotspotLayer.innerHTML = "";
