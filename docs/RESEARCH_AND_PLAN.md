@@ -54,6 +54,7 @@ Planned production slice:
 - Large, accessible hotspot buttons.
 - Dynamic descriptive alt text for each scene image.
 - Subtle pointer parallax on scene art with reduced-motion support.
+- Scene-specific procedural canvas overlays for rain and boiler steam.
 - Keyboard shortcuts for scene actions plus hint, journal, reveal, and mute controls.
 - Inventory with selectable strange items.
 - Inventory inspection text that doubles as diegetic hinting.

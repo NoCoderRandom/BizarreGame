@@ -1953,6 +1953,48 @@ const motes = Array.from({ length: 72 }, () => ({
   a: 0.12 + Math.random() * 0.4,
 }));
 
+const weather = Array.from({ length: 42 }, () => ({
+  x: Math.random(),
+  y: Math.random(),
+  l: 0.08 + Math.random() * 0.16,
+  s: 0.18 + Math.random() * 0.32,
+  a: 0.08 + Math.random() * 0.16,
+}));
+
+function drawSceneWeather(rect, time) {
+  if (reduceMotionQuery.matches) return;
+
+  if (state.scene === "alley") {
+    ctx.globalCompositeOperation = "screen";
+    ctx.lineWidth = 1;
+    weather.forEach((drop) => {
+      drop.y += drop.s * 0.006;
+      if (drop.y > 1.1) {
+        drop.y = -0.1;
+        drop.x = Math.random();
+      }
+      const x = drop.x * rect.width;
+      const y = drop.y * rect.height;
+      ctx.beginPath();
+      ctx.strokeStyle = `rgba(176,238,246,${drop.a})`;
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - rect.width * 0.018, y + rect.height * drop.l);
+      ctx.stroke();
+    });
+  } else if (state.scene === "boiler") {
+    ctx.globalCompositeOperation = "screen";
+    weather.slice(0, 18).forEach((wisp, index) => {
+      const rise = (time * 0.00004 * (1 + wisp.s) + wisp.y) % 1;
+      const x = (0.62 + Math.sin(time * 0.00028 + index) * 0.12 + wisp.x * 0.18) * rect.width;
+      const y = (0.92 - rise * 0.72) * rect.height;
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(245,197,146,${0.012 + wisp.a * 0.12})`;
+      ctx.ellipse(x, y, 10 + wisp.l * 56, 3 + wisp.l * 18, Math.sin(time * 0.0004 + index), 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+}
+
 function animate(time = 0) {
   const rect = stage.getBoundingClientRect();
   ctx.clearRect(0, 0, rect.width, rect.height);
@@ -1977,6 +2019,8 @@ function animate(time = 0) {
     ctx.arc(x, y, mote.r, 0, Math.PI * 2);
     ctx.fill();
   });
+
+  drawSceneWeather(rect, time);
 
   if (state.static > 35) {
     ctx.globalCompositeOperation = "source-over";
