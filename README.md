@@ -33,6 +33,14 @@ https://<your-github-username>.github.io/<repo-name>/
 
 Click objects in the scene, select pocket items, then click objects that might react to the selected item. The circle button in the top-right reveals touch points.
 
+## Test
+
+```powershell
+npm install
+npx playwright install chromium
+npm test
+```
+
 ## Notes
 
 The game uses generated original images and procedural browser audio, so it does not need downloaded asset packs or a build step.

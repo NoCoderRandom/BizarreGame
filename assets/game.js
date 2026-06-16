@@ -13,6 +13,7 @@ const quietButton = document.querySelector("#quietButton");
 const muteButton = document.querySelector("#muteButton");
 const revealButton = document.querySelector("#revealButton");
 const modalRoot = document.querySelector("#modalRoot");
+const actionsEl = document.querySelector("#actions");
 
 const itemMeta = {
   wetCoin: { label: "Wet Coin", color: "#b5d7d2" },
@@ -544,6 +545,18 @@ class AudioEngine {
 
 const audio = new AudioEngine();
 
+function bindActivation(element, handler) {
+  const activate = (event) => {
+    if (event?.cancelable) event.preventDefault();
+    handler(event);
+  };
+
+  element.addEventListener("click", activate);
+  element.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") activate(event);
+  });
+}
+
 function addItem(item) {
   state.items.add(item);
   state.selectedItem = item;
@@ -602,13 +615,31 @@ function renderInventory() {
     button.style.setProperty("--item-color", meta.color);
     button.setAttribute("aria-pressed", String(state.selectedItem === item));
     button.classList.toggle("selected", state.selectedItem === item);
-    button.addEventListener("click", () => {
+    bindActivation(button, () => {
       state.selectedItem = state.selectedItem === item ? null : item;
       audio.click();
       renderInventory();
     });
     inventoryEl.append(button);
   }
+}
+
+function renderActions(scene) {
+  actionsEl.innerHTML = "";
+  scene.hotspots.forEach((hotspot) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "action-button";
+    button.textContent = hotspot.label;
+    button.dataset.hotspot = hotspot.id;
+    bindActivation(button, () => {
+      audio.click();
+      hotspot.click();
+      renderInventory();
+      renderActions(scenes[state.scene]);
+    });
+    actionsEl.append(button);
+  });
 }
 
 function renderScene() {
@@ -632,13 +663,15 @@ function renderScene() {
     button.style.setProperty("--h", `${hotspot.h}%`);
     button.addEventListener("mouseenter", () => audio.hover());
     button.addEventListener("focus", () => audio.hover());
-    button.addEventListener("click", () => {
+    bindActivation(button, () => {
       audio.click();
       hotspot.click();
       renderInventory();
+      renderActions(scenes[state.scene]);
     });
     hotspotLayer.append(button);
   });
+  renderActions(scene);
   audio.setScene(scene.ambience);
   say(scene.entry);
 }
@@ -667,7 +700,7 @@ function openTonePuzzle() {
         dial.type = "button";
         dial.className = "dial";
         dial.innerHTML = `<span>dial ${index + 1}</span>${slot}`;
-        dial.addEventListener("click", () => {
+        bindActivation(dial, () => {
           const current = options.indexOf(slots[index]);
           slots[index] = options[(current + 1) % options.length];
           dial.innerHTML = `<span>dial ${index + 1}</span>${slots[index]}`;
@@ -723,7 +756,7 @@ function openNamePuzzle() {
         button.className = "stain-choice";
         button.style.borderColor = meta.color;
         button.innerHTML = `<span>${chosen.includes(item) ? "placed" : "stain"}</span>${meta.label}`;
-        button.addEventListener("click", () => {
+        bindActivation(button, () => {
           if (chosen.includes(item)) return;
           chosen.push(item);
           button.innerHTML = `<span>placed</span>${meta.label}`;
@@ -782,14 +815,14 @@ function openModal({ title, body, content, actions }) {
     button.className = "modal-button";
     button.textContent = action.label;
     if (action.primary) button.classList.add("primary-action");
-    button.addEventListener("click", action.click);
+    bindActivation(button, action.click);
     footer.append(button);
   });
   const cancel = document.createElement("button");
   cancel.type = "button";
   cancel.className = "modal-button";
   cancel.textContent = "Step Back";
-  cancel.addEventListener("click", closeModal);
+  bindActivation(cancel, closeModal);
   footer.prepend(cancel);
   modalRoot.append(modal);
 }
@@ -831,7 +864,7 @@ function win(kind) {
     </div>
   `;
   document.body.append(ending);
-  document.querySelector("#restartButton").addEventListener("click", () => {
+  bindActivation(document.querySelector("#restartButton"), () => {
     window.location.reload();
   });
 }
@@ -906,18 +939,23 @@ function startGame({ audioGesture = true } = {}) {
   if (audioGesture) audio.whisper("wash gently");
 }
 
-beginButton.addEventListener("click", () => startGame());
+bindActivation(beginButton, () => {
+  startGame();
+  if (window.history?.replaceState) {
+    window.history.replaceState(null, "", window.location.pathname);
+  }
+});
 
-quietButton.addEventListener("click", () => {
+bindActivation(quietButton, () => {
   state.flags.quiet = !state.flags.quiet;
   audio.setMuted(state.flags.quiet);
 });
 
-muteButton.addEventListener("click", () => {
+bindActivation(muteButton, () => {
   audio.setMuted(!audio.muted);
 });
 
-revealButton.addEventListener("click", () => {
+bindActivation(revealButton, () => {
   stage.classList.toggle("revealing");
   revealButton.classList.toggle("active", stage.classList.contains("revealing"));
   audio.click();
@@ -939,7 +977,7 @@ requestAnimationFrame(animate);
 
 const params = new URLSearchParams(window.location.search);
 
-if (params.has("autostart")) {
+if (params.has("autostart") || params.has("play")) {
   window.setTimeout(() => startGame({ audioGesture: false }), 120);
 }
 

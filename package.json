@@ -1,0 +1,28 @@
+{
+  "name": "bizarregame",
+  "version": "1.0.0",
+  "description": "A short surreal point-and-click horror game for the browser.",
+  "private": true,
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NoCoderRandom/BizarreGame.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/NoCoderRandom/BizarreGame/issues"
+  },
+  "homepage": "https://nocoderrandom.github.io/BizarreGame/",
+  "devDependencies": {
+    "@playwright/test": "^1.61.0"
+  }
+}

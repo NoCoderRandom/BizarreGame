@@ -21,6 +21,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 html,
 body {
   min-height: 100%;
@@ -38,6 +42,10 @@ body {
 
 button {
   font: inherit;
+}
+
+a {
+  color: inherit;
 }
 
 .game-shell {
@@ -122,6 +130,7 @@ button {
 
 .icon-button,
 .item-button,
+.action-button,
 .primary-action,
 .ghost-action,
 .modal-button {
@@ -149,6 +158,7 @@ button {
 
 .icon-button:hover,
 .item-button:hover,
+.action-button:hover,
 .primary-action:hover,
 .ghost-action:hover,
 .modal-button:hover {
@@ -157,7 +167,8 @@ button {
 }
 
 .icon-button.active,
-.item-button.selected {
+.item-button.selected,
+.action-button:active {
   color: #11140f;
   background: var(--accent);
   border-color: rgba(255, 244, 199, 0.72);
@@ -275,6 +286,7 @@ button {
 }
 
 .inventory-panel,
+.action-panel,
 .message-panel {
   border: 1px solid var(--line);
   background: var(--panel);
@@ -283,12 +295,25 @@ button {
 }
 
 .inventory-panel {
-  flex: 1 1 50%;
+  flex: 1 1 34%;
+  min-height: 82px;
+  padding: 12px;
+}
+
+.action-panel {
+  flex: 1.25 1 38%;
   min-height: 82px;
   padding: 12px;
 }
 
 .inventory {
+  margin-top: 7px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.actions {
   margin-top: 7px;
   display: flex;
   flex-wrap: wrap;
@@ -305,6 +330,14 @@ button {
   color: var(--ink);
 }
 
+.action-button {
+  min-height: 34px;
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--ink);
+  text-transform: lowercase;
+}
+
 .item-button::before {
   content: "";
   width: 10px;
@@ -317,7 +350,7 @@ button {
 }
 
 .message-panel {
-  flex: 1 1 50%;
+  flex: 1 1 28%;
   min-height: 82px;
   display: flex;
   align-items: center;
@@ -390,9 +423,13 @@ button {
 }
 
 .primary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: #161108;
   border-color: rgba(255, 231, 167, 0.72);
   background: linear-gradient(180deg, #ffd979, #d99a37);
+  text-decoration: none;
 }
 
 .ghost-action {
@@ -533,6 +570,7 @@ button {
   }
 
   .inventory-panel,
+  .action-panel,
   .message-panel {
     min-height: auto;
   }
@@ -633,6 +671,7 @@ button {
   }
 
   .inventory-panel,
+  .action-panel,
   .message-panel {
     min-height: 72px;
     padding: 10px 12px;
