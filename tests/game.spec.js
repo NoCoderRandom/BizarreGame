@@ -185,6 +185,14 @@ test("player can start and finish the main route", async ({ page }) => {
   await expect(page.locator("#endingStamps")).toContainText("You Leave Named");
   await expect(page.locator("#endingStamps")).toContainText("Unknown ending");
   await expect(page.locator(".ending-stamp.locked").first()).toHaveAttribute("title", /static climb high/);
+
+  await page.getByRole("link", { name: "Begin Shift" }).click();
+  await page.keyboard.press("J");
+  await expect(page.locator(".modal")).toContainText("Ending Records");
+  await expect(page.locator(".modal")).toContainText("Unknown ending: Let static climb high");
+  await page.locator(".modal").getByRole("button", { name: "Step Back" }).click();
+
+  await page.goto("./");
   await page.getByRole("button", { name: "Burn Records" }).click();
   await expect(page.locator("#endingStamps")).toBeHidden();
 });

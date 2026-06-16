@@ -1827,6 +1827,25 @@ function openJournal() {
         panel.append(pocketList);
       }
 
+      const endings = new Set(readEndings());
+      if (endings.size) {
+        const endingTitle = document.createElement("h4");
+        endingTitle.className = "journal-subhead";
+        endingTitle.textContent = "Ending Records";
+        panel.append(endingTitle);
+
+        const endingList = document.createElement("ul");
+        endingList.className = "journal-list";
+        endingOrder.forEach((ending) => {
+          const entry = document.createElement("li");
+          entry.textContent = endings.has(ending)
+            ? endingMeta[ending].title
+            : `Unknown ending: ${endingMeta[ending].hint}`;
+          endingList.append(entry);
+        });
+        panel.append(endingList);
+      }
+
       return panel;
     },
     actions: [],
