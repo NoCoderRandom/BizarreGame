@@ -49,6 +49,7 @@ Planned production slice:
 - Three original 16:9 scene backgrounds.
 - Fourth original 16:9 lost-and-found office background.
 - Original close-up art for the safe and name basin puzzle modals.
+- Optimized WebP art assets for faster GitHub Pages loading.
 - Large, accessible hotspot buttons.
 - Keyboard shortcuts for hint, journal, reveal, and mute controls.
 - Inventory with selectable strange items.

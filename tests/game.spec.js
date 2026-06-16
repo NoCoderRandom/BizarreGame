@@ -81,7 +81,7 @@ test("player can start and finish the main route", async ({ page }) => {
 
   const safeModal = page.locator(".modal");
   await expect(safeModal).toContainText("Claim Safe");
-  await expect(safeModal.locator(".modal-art")).toHaveAttribute("src", /claim-safe-closeup\.png/);
+  await expect(safeModal.locator(".modal-art")).toHaveAttribute("src", /claim-safe-closeup\.webp/);
   const safeDigits = safeModal.locator(".dial");
   await safeDigits.nth(0).click();
   await safeDigits.nth(0).click();
@@ -129,7 +129,7 @@ test("player can start and finish the main route", async ({ page }) => {
 
   const nameModal = page.locator(".modal");
   await expect(nameModal).toContainText("Name Basin");
-  await expect(nameModal.locator(".modal-art")).toHaveAttribute("src", /name-basin-closeup\.png/);
+  await expect(nameModal.locator(".modal-art")).toHaveAttribute("src", /name-basin-closeup\.webp/);
   await nameModal.getByRole("button", { name: "Rust" }).click();
   await nameModal.getByRole("button", { name: "Voice" }).click();
   await nameModal.getByRole("button", { name: "Vowel Slip" }).click();

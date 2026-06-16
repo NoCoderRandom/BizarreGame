@@ -160,7 +160,7 @@ const endingOrder = ["clean", "frayed", "soft"];
 const scenes = {
   lobby: {
     title: "Lobby",
-    image: "assets/images/laundromat-lobby.png",
+    image: "assets/images/laundromat-lobby.webp",
     ambience: "lobby",
     entry:
       "The lobby smells like rainwater, hot lint, and somebody else's childhood.",
@@ -317,7 +317,7 @@ const scenes = {
   },
   office: {
     title: "Lost Office",
-    image: "assets/images/lost-office.png",
+    image: "assets/images/lost-office.webp",
     ambience: "office",
     entry:
       "The lost-and-found office catalogs things people swear they never owned.",
@@ -447,7 +447,7 @@ const scenes = {
   },
   shrine: {
     title: "Back Room",
-    image: "assets/images/dryer-shrine.png",
+    image: "assets/images/dryer-shrine.webp",
     ambience: "shrine",
     entry:
       "Heat rolls over you. The dryers are arranged like an altar that learned plumbing.",
@@ -567,7 +567,7 @@ const scenes = {
   },
   alley: {
     title: "Rain Alley",
-    image: "assets/images/rain-alley.png",
+    image: "assets/images/rain-alley.webp",
     ambience: "alley",
     entry:
       "The alley is waiting in blue dawn. The sheets above turn slowly around an impossible drain in the sky.",
@@ -1268,7 +1268,7 @@ function openSafePuzzle() {
     title: "Claim Safe",
     body:
       "The brass key turns once. Three tumblers wait for the time the laundromat keeps repeating.",
-    image: "assets/images/claim-safe-closeup.png",
+    image: "assets/images/claim-safe-closeup.webp",
     imageAlt: "A damp brass claim safe with a key in the lock and three old number tumblers.",
     content: () => {
       const grid = document.createElement("div");
@@ -1387,7 +1387,7 @@ function openNamePuzzle() {
     title: "Name Basin",
     body:
       "The basin has three drains. Your tag lies between them, waiting for weight, breath, and letters.",
-    image: "assets/images/name-basin-closeup.png",
+    image: "assets/images/name-basin-closeup.webp",
     imageAlt: "A cracked porcelain basin with three drains, rust, a blue breath-like glow, and a damp name tag.",
     content: () => {
       const grid = document.createElement("div");

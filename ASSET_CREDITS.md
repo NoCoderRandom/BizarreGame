@@ -4,12 +4,12 @@
 
 The scene backgrounds and puzzle close-ups in `assets/images/` were generated for this project with the built-in Codex image generation tool, using prompts for:
 
-- `laundromat-lobby.png`
-- `dryer-shrine.png`
-- `rain-alley.png`
-- `lost-office.png`
-- `claim-safe-closeup.png`
-- `name-basin-closeup.png`
+- `laundromat-lobby.webp`
+- `dryer-shrine.webp`
+- `rain-alley.webp`
+- `lost-office.webp`
+- `claim-safe-closeup.webp`
+- `name-basin-closeup.webp`
 
 The prompts requested original non-graphic psychological horror game art with no logos, no readable text, no watermark, and no third-party characters.
 

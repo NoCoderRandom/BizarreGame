@@ -429,7 +429,7 @@ body.static-critical .message-panel {
   overflow: auto;
   background:
     linear-gradient(90deg, rgba(3, 5, 5, 0.42), rgba(3, 5, 5, 0.84)),
-    url("assets/images/laundromat-lobby.png") center / cover no-repeat,
+    url("assets/images/laundromat-lobby.webp") center / cover no-repeat,
     #050606;
 }
 
@@ -711,7 +711,7 @@ body.static-critical .message-panel {
   padding: min(7vw, 72px);
   background:
     linear-gradient(0deg, rgba(0, 0, 0, 0.86), transparent 58%),
-    url("assets/images/rain-alley.png") center / cover no-repeat;
+    url("assets/images/rain-alley.webp") center / cover no-repeat;
 }
 
 .ending-copy {
