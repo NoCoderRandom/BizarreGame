@@ -122,10 +122,12 @@ test("player can start and finish the main route", async ({ page }) => {
 
   await action(page, "open rain").click();
   await expect(page.locator(".ending-copy h2")).toHaveText("You Leave Named");
+  await expect(page.locator(".ending-record")).toContainText("Ending recorded 1/3");
 
   await page.goto("./");
   await expect(page.getByRole("link", { name: "Begin Shift" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Continue Shift" })).toBeHidden();
-  await expect(page.locator("#endingStamps")).toContainText("Endings found");
+  await expect(page.locator("#endingStamps")).toContainText("Endings found 1/3");
   await expect(page.locator("#endingStamps")).toContainText("You Leave Named");
+  await expect(page.locator("#endingStamps")).toContainText("Unknown ending");
 });

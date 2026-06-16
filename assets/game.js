@@ -126,6 +126,7 @@ const endingMeta = {
       "The payphone rings once. You answer from the other end and say your name until it fits. The sheets above unfold into a road.",
   },
 };
+const endingOrder = ["clean", "frayed", "soft"];
 
 const scenes = {
   lobby: {
@@ -859,34 +860,36 @@ function readEndings() {
 }
 
 function recordEnding(kind) {
-  if (!endingMeta[kind]) return;
+  if (!endingMeta[kind]) return readEndings().length;
   const endings = new Set(readEndings());
   endings.add(kind);
   try {
     window.localStorage?.setItem(ENDINGS_KEY, JSON.stringify([...endings]));
   } catch {
-    return;
+    return endings.size;
   }
   renderEndingStamps();
+  return endings.size;
 }
 
 function renderEndingStamps() {
-  const endings = readEndings();
+  const endings = new Set(readEndings());
   endingStampsEl.innerHTML = "";
-  endingStampsEl.hidden = !endings.length;
-  if (!endings.length) return;
+  endingStampsEl.hidden = !endings.size;
+  if (!endings.size) return;
 
   const label = document.createElement("p");
   label.className = "ending-stamps-label";
-  label.textContent = "Endings found";
+  label.textContent = `Endings found ${endings.size}/${endingOrder.length}`;
   endingStampsEl.append(label);
 
   const list = document.createElement("div");
   list.className = "ending-stamp-list";
-  endings.forEach((ending) => {
+  endingOrder.forEach((ending) => {
     const stamp = document.createElement("span");
     stamp.className = "ending-stamp";
-    stamp.textContent = endingMeta[ending].title;
+    stamp.classList.toggle("locked", !endings.has(ending));
+    stamp.textContent = endings.has(ending) ? endingMeta[ending].title : "Unknown ending";
     list.append(stamp);
   });
   endingStampsEl.append(list);
@@ -1439,7 +1442,7 @@ function win(kind) {
   if (state.flags.escaped) return;
   state.flags.escaped = true;
   clearSave();
-  recordEnding(kind);
+  const endingCount = recordEnding(kind);
   audio.ending();
   const ending = document.createElement("section");
   ending.className = "ending-card";
@@ -1449,6 +1452,7 @@ function win(kind) {
       <p class="kicker">ending</p>
       <h2>${endingText.title}</h2>
       <p>${endingText.body}</p>
+      <p class="ending-record">Ending recorded ${endingCount}/${endingOrder.length}</p>
       <button class="primary-action" type="button" id="restartButton">Restart Shift</button>
     </div>
   `;

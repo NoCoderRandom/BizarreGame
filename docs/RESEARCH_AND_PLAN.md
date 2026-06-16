@@ -60,7 +60,7 @@ Planned production slice:
 - Procedural ambient audio and one sound clue puzzle.
 - Three puzzle gates: claim safe, tone panel, and name basin.
 - Multiple endings based on route/static level.
-- Persistent ending stamps for replay tracking.
+- Persistent ending stamps with 1/3 replay progress tracking.
 - Static GitHub Pages-ready deployment.
 
 ## Asset Strategy
