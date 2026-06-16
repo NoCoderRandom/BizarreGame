@@ -1436,6 +1436,8 @@ function renderActions(scene) {
   listenButton.className = "action-button";
   listenButton.textContent = "listen";
   listenButton.dataset.hotspot = "listen";
+  listenButton.setAttribute("aria-keyshortcuts", "1");
+  listenButton.title = "Shortcut: 1";
   bindActivation(listenButton, () => {
     listenToRoom();
     renderInventory();
@@ -1443,12 +1445,17 @@ function renderActions(scene) {
   });
   actionsEl.append(listenButton);
 
-  scene.hotspots.forEach((hotspot) => {
+  scene.hotspots.forEach((hotspot, index) => {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "action-button";
     button.textContent = hotspot.label;
     button.dataset.hotspot = hotspot.id;
+    if (index < 8) {
+      const shortcut = String(index + 2);
+      button.setAttribute("aria-keyshortcuts", shortcut);
+      button.title = `Shortcut: ${shortcut}`;
+    }
     bindActivation(button, () => {
       audio.click();
       hotspot.click();
@@ -2025,7 +2032,13 @@ window.addEventListener("keydown", (event) => {
   if (!state.flags.started || !modalRoot.hidden) return;
 
   const key = event.key.toLowerCase();
-  if (key === "r") {
+  if (/^[1-9]$/.test(event.key)) {
+    const button = actionsEl.querySelectorAll("button")[Number(event.key) - 1];
+    if (button) {
+      event.preventDefault();
+      button.click();
+    }
+  } else if (key === "r") {
     event.preventDefault();
     stage.classList.toggle("revealing");
     revealButton.classList.toggle("active", stage.classList.contains("revealing"));

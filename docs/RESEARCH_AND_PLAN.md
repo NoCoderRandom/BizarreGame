@@ -54,7 +54,7 @@ Planned production slice:
 - Large, accessible hotspot buttons.
 - Dynamic descriptive alt text for each scene image.
 - Subtle pointer parallax on scene art with reduced-motion support.
-- Keyboard shortcuts for hint, journal, reveal, and mute controls.
+- Keyboard shortcuts for scene actions plus hint, journal, reveal, and mute controls.
 - Inventory with selectable strange items.
 - Inventory inspection text that doubles as diegetic hinting.
 - Optional hotspot reveal mode.

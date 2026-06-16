@@ -15,7 +15,8 @@ test("player can start and finish the main route", async ({ page }) => {
   await expect(page.locator("#startScreen")).toHaveClass(/is-hidden/);
   await expect(action(page, "lost basket")).toBeVisible();
 
-  await action(page, "listen").click();
+  await expect(action(page, "listen")).toHaveAttribute("aria-keyshortcuts", "1");
+  await page.keyboard.press("1");
   await expect(page.locator("#message")).toContainText("washers breathe");
   await expect(page.locator("#apparition")).toContainText("washers breathe");
 
