@@ -1,0 +1,1062 @@
+const sceneImage = document.querySelector("#sceneImage");
+const hotspotLayer = document.querySelector("#hotspotLayer");
+const stage = document.querySelector("#stage");
+const canvas = document.querySelector("#fxCanvas");
+const ctx = canvas.getContext("2d", { alpha: true });
+const roomTitle = document.querySelector("#roomTitle");
+const inventoryEl = document.querySelector("#inventory");
+const messageEl = document.querySelector("#message");
+const staticFill = document.querySelector("#staticFill");
+const startScreen = document.querySelector("#startScreen");
+const beginButton = document.querySelector("#beginButton");
+const quietButton = document.querySelector("#quietButton");
+const muteButton = document.querySelector("#muteButton");
+const revealButton = document.querySelector("#revealButton");
+const modalRoot = document.querySelector("#modalRoot");
+
+const itemMeta = {
+  wetCoin: { label: "Wet Coin", color: "#b5d7d2" },
+  blackSoap: { label: "Black Soap", color: "#1b1d1f" },
+  soot: { label: "Soot", color: "#2a2d2c" },
+  rust: { label: "Rust", color: "#bd613b" },
+  voice: { label: "Voice", color: "#4cc7ce" },
+  nameTag: { label: "Name Tag", color: "#f1d283" },
+};
+
+const state = {
+  scene: "lobby",
+  items: new Set(),
+  selectedItem: null,
+  flags: {
+    started: false,
+    quiet: false,
+    washerOpened: false,
+    vendingUsed: false,
+    backUnlocked: false,
+    radioHeard: false,
+    radioCaptured: false,
+    shrineAwake: false,
+    toneSolved: false,
+    dryerFed: false,
+    nameRestored: false,
+    escaped: false,
+  },
+  static: 8,
+  message:
+    "The machines wait with their round black eyes.",
+};
+
+const scenes = {
+  lobby: {
+    title: "Lobby",
+    image: "assets/images/laundromat-lobby.png",
+    ambience: "lobby",
+    entry:
+      "The lobby smells like rainwater, hot lint, and somebody else's childhood.",
+    hotspots: [
+      {
+        id: "washer",
+        label: "breathing washer",
+        x: 5,
+        y: 23,
+        w: 21,
+        h: 36,
+        click: () => {
+          if (!state.flags.washerOpened) {
+            state.flags.washerOpened = true;
+            addItem("wetCoin");
+            audio.pickup();
+            say("A coin rolls out of the rubber lip. It is warm, wet, and freshly ashamed.");
+            pulseStatic(4);
+            return;
+          }
+          say("The washer exhales once. Nothing else wants to be born from it.");
+          audio.machineBreathe();
+        },
+      },
+      {
+        id: "vending",
+        label: "soap machine",
+        x: 28,
+        y: 28,
+        w: 8,
+        h: 26,
+        click: () => {
+          if (state.flags.vendingUsed) {
+            say("The soap machine has gone dark. Its last bottle is in your pocket.");
+            return;
+          }
+          if (consumeSelected("wetCoin")) {
+            state.flags.vendingUsed = true;
+            addItem("blackSoap");
+            audio.pickup();
+            say("The machine accepts the wet coin and drops a bottle of black soap. It is heavier than it looks.");
+            return;
+          }
+          nudge("The slot clicks its tiny teeth. It wants money with water still inside it.");
+        },
+      },
+      {
+        id: "radio",
+        label: "radio static",
+        x: 17,
+        y: 43,
+        w: 8,
+        h: 13,
+        click: () => {
+          state.flags.radioHeard = true;
+          audio.radioClue();
+          if (state.flags.toneSolved && !state.flags.radioCaptured) {
+            state.flags.radioCaptured = true;
+            addItem("voice");
+            say("The radio coughs up your voice. It lands in your hand like a cold moth.");
+            return;
+          }
+          say("The radio repeats three notes: low, high, middle. Something in the walls hums along.");
+        },
+      },
+      {
+        id: "basket",
+        label: "lost basket",
+        x: 0,
+        y: 63,
+        w: 16,
+        h: 27,
+        click: () => {
+          if (state.items.has("soot")) {
+            say("Only damp socks remain. They refuse to match each other.");
+            return;
+          }
+          addItem("soot");
+          audio.pickup();
+          say("Under the basket is a pinch of soft black soot. It stains your fingerprints before you touch it.");
+        },
+      },
+      {
+        id: "backdoor",
+        label: "red back door",
+        x: 47,
+        y: 35,
+        w: 10,
+        h: 25,
+        click: () => {
+          if (state.flags.backUnlocked) {
+            go("shrine");
+            return;
+          }
+          if (consumeSelected("blackSoap")) {
+            state.flags.backUnlocked = true;
+            audio.door();
+            say("The black soap crawls into the lock. The red door remembers how to open.");
+            go("shrine", 700);
+            return;
+          }
+          nudge("The back door is sealed with a clean, dry hunger.");
+        },
+      },
+      {
+        id: "exit",
+        label: "front exit",
+        x: 82,
+        y: 32,
+        w: 16,
+        h: 38,
+        click: () => {
+          if (state.flags.nameRestored) {
+            go("alley");
+            return;
+          }
+          nudge("The glass reflects you without a name. The street will not accept that.");
+        },
+      },
+    ],
+  },
+  shrine: {
+    title: "Back Room",
+    image: "assets/images/dryer-shrine.png",
+    ambience: "shrine",
+    entry:
+      "Heat rolls over you. The dryers are arranged like an altar that learned plumbing.",
+    hotspots: [
+      {
+        id: "lobbydoor",
+        label: "lobby door",
+        x: 0,
+        y: 18,
+        w: 10,
+        h: 53,
+        click: () => go("lobby"),
+      },
+      {
+        id: "tonePanel",
+        label: "three-note panel",
+        x: 79,
+        y: 26,
+        w: 11,
+        h: 25,
+        click: () => {
+          if (state.flags.toneSolved) {
+            say("The panel's lights blink low, high, middle, over and over like a tiny apology.");
+            audio.toneAnswer();
+            return;
+          }
+          openTonePuzzle();
+        },
+      },
+      {
+        id: "bucket",
+        label: "rust bucket",
+        x: 62,
+        y: 72,
+        w: 9,
+        h: 13,
+        click: () => {
+          if (!state.flags.toneSolved) {
+            nudge("The bucket twitches away. The panel keeps it loyal.");
+            return;
+          }
+          if (state.items.has("rust")) {
+            say("The bucket is empty except for a circle of orange fingerprints.");
+            return;
+          }
+          addItem("rust");
+          audio.pickup();
+          say("You lift a smear of rust. It sparks against your palm like an old argument.");
+        },
+      },
+      {
+        id: "hangingTags",
+        label: "dangling tags",
+        x: 43,
+        y: 20,
+        w: 16,
+        h: 20,
+        click: () => {
+          if (state.items.has("nameTag")) {
+            say("The remaining tags are blank. Some blanks feel louder than words.");
+            return;
+          }
+          if (!state.flags.dryerFed) {
+            nudge("A tag with your outline hangs too high. The central dryer keeps tugging it upward.");
+            return;
+          }
+          addItem("nameTag");
+          audio.pickup();
+          say("You snatch the damp tag. Your name is on it, but the letters keep sliding around.");
+        },
+      },
+      {
+        id: "centralDryer",
+        label: "central dryer",
+        x: 36,
+        y: 36,
+        w: 28,
+        h: 34,
+        click: () => {
+          if (state.flags.dryerFed) {
+            say("The central dryer purrs with soot in its throat.");
+            audio.machineBreathe();
+            return;
+          }
+          if (consumeSelected("soot")) {
+            state.flags.dryerFed = true;
+            state.flags.shrineAwake = true;
+            audio.success();
+            say("The soot blackens the dryer glass. A damp name tag drops from the ceiling and swings closer.");
+            pulseStatic(6);
+            return;
+          }
+          nudge("The central dryer opens a little wider. It wants something dark enough to make a shadow.");
+        },
+      },
+      {
+        id: "altar",
+        label: "name basin",
+        x: 39,
+        y: 72,
+        w: 23,
+        h: 14,
+        click: () => {
+          if (state.flags.nameRestored) {
+            say("The basin is dry. It has already failed to keep you.");
+            return;
+          }
+          if (state.items.has("nameTag") && state.items.has("rust") && state.items.has("voice")) {
+            openNamePuzzle();
+            return;
+          }
+          nudge("The basin wants a tag, rust, and a voice. It is not shy about wanting.");
+        },
+      },
+    ],
+  },
+  alley: {
+    title: "Rain Alley",
+    image: "assets/images/rain-alley.png",
+    ambience: "alley",
+    entry:
+      "The alley is waiting in blue dawn. The sheets above turn slowly around an impossible drain in the sky.",
+    hotspots: [
+      {
+        id: "payphone",
+        label: "payphone",
+        x: 2,
+        y: 32,
+        w: 12,
+        h: 28,
+        click: () => {
+          if (!state.flags.nameRestored) {
+            nudge("The phone rings from inside your chest, then gives up.");
+            return;
+          }
+          win("soft");
+        },
+      },
+      {
+        id: "openRain",
+        label: "open rain",
+        x: 42,
+        y: 52,
+        w: 24,
+        h: 32,
+        click: () => {
+          if (!state.flags.nameRestored) {
+            nudge("The rain passes through you where your name should be.");
+            return;
+          }
+          win(state.static > 55 ? "frayed" : "clean");
+        },
+      },
+      {
+        id: "spiralSheets",
+        label: "sheet spiral",
+        x: 43,
+        y: 5,
+        w: 33,
+        h: 31,
+        click: () => {
+          audio.whisper("do not fold yourself smaller");
+          say("The hanging sheets turn in the dawn wind. For a moment, every cloth is shaped like a door.");
+        },
+      },
+      {
+        id: "returnDoor",
+        label: "laundromat door",
+        x: 12,
+        y: 34,
+        w: 13,
+        h: 29,
+        click: () => go("lobby"),
+      },
+    ],
+  },
+};
+
+class AudioEngine {
+  constructor() {
+    this.ctx = null;
+    this.master = null;
+    this.noise = null;
+    this.noiseGain = null;
+    this.droneA = null;
+    this.droneB = null;
+    this.droneGain = null;
+    this.filter = null;
+    this.delay = null;
+    this.scene = "lobby";
+    this.muted = false;
+  }
+
+  start() {
+    if (this.ctx) {
+      this.ctx.resume();
+      return;
+    }
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) {
+      return;
+    }
+    this.ctx = new AudioContext();
+    this.master = this.ctx.createGain();
+    this.master.gain.value = this.muted ? 0 : 0.72;
+    this.master.connect(this.ctx.destination);
+
+    this.delay = this.ctx.createDelay(1.8);
+    this.delay.delayTime.value = 0.18;
+    const delayGain = this.ctx.createGain();
+    delayGain.gain.value = 0.18;
+    this.delay.connect(delayGain).connect(this.master);
+
+    this.filter = this.ctx.createBiquadFilter();
+    this.filter.type = "lowpass";
+    this.filter.frequency.value = 690;
+    this.filter.Q.value = 0.8;
+    this.filter.connect(this.master);
+    this.filter.connect(this.delay);
+
+    this.noise = this.ctx.createBufferSource();
+    this.noise.buffer = this.noiseBuffer(6);
+    this.noise.loop = true;
+    this.noiseGain = this.ctx.createGain();
+    this.noiseGain.gain.value = 0.035;
+    this.noise.connect(this.noiseGain).connect(this.filter);
+    this.noise.start();
+
+    this.droneA = this.osc("sine", 53, 0.05);
+    this.droneB = this.osc("triangle", 80, 0.025);
+    this.setScene(this.scene);
+  }
+
+  setMuted(muted) {
+    this.muted = muted;
+    if (this.master) {
+      this.master.gain.setTargetAtTime(muted ? 0 : 0.72, this.ctx.currentTime, 0.04);
+    }
+    muteButton.classList.toggle("active", muted);
+    quietButton.textContent = muted ? "Sound Off" : "Sound On";
+    quietButton.setAttribute("aria-pressed", String(muted));
+  }
+
+  setScene(scene) {
+    this.scene = scene;
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+    const settings = {
+      lobby: { noise: 0.035, freq: 620, a: 53, b: 83 },
+      shrine: { noise: 0.058, freq: 460, a: 38, b: 71 },
+      alley: { noise: 0.044, freq: 920, a: 47, b: 94 },
+    }[scene];
+    this.noiseGain.gain.setTargetAtTime(settings.noise, now, 0.5);
+    this.filter.frequency.setTargetAtTime(settings.freq, now, 0.8);
+    this.droneA.frequency.setTargetAtTime(settings.a, now, 1.1);
+    this.droneB.frequency.setTargetAtTime(settings.b, now, 1.1);
+  }
+
+  noiseBuffer(seconds) {
+    const sampleRate = this.ctx.sampleRate;
+    const buffer = this.ctx.createBuffer(1, sampleRate * seconds, sampleRate);
+    const data = buffer.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < data.length; i += 1) {
+      last = last * 0.94 + (Math.random() * 2 - 1) * 0.06;
+      data[i] = last;
+    }
+    return buffer;
+  }
+
+  osc(type, frequency, gainValue) {
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = frequency;
+    gain.gain.value = gainValue;
+    osc.connect(gain).connect(this.filter);
+    osc.start();
+    return osc;
+  }
+
+  blip(freq, dur = 0.12, type = "sine", gain = 0.16, when = 0) {
+    if (!this.ctx || this.muted) return;
+    const now = this.ctx.currentTime + when;
+    const osc = this.ctx.createOscillator();
+    const env = this.ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, now);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(20, freq * 0.72), now + dur);
+    env.gain.setValueAtTime(0.0001, now);
+    env.gain.exponentialRampToValueAtTime(gain, now + 0.015);
+    env.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    osc.connect(env).connect(this.master);
+    env.connect(this.delay);
+    osc.start(now);
+    osc.stop(now + dur + 0.03);
+  }
+
+  thud(freq = 92, gain = 0.18) {
+    this.blip(freq, 0.28, "triangle", gain);
+    this.blip(freq * 0.49, 0.38, "sine", gain * 0.5, 0.02);
+  }
+
+  click() {
+    this.blip(680 + Math.random() * 80, 0.045, "square", 0.045);
+  }
+
+  hover() {
+    this.blip(920 + Math.random() * 120, 0.025, "sine", 0.018);
+  }
+
+  pickup() {
+    this.blip(360, 0.08, "triangle", 0.12);
+    this.blip(540, 0.12, "sine", 0.12, 0.06);
+    this.blip(820, 0.18, "sine", 0.09, 0.13);
+  }
+
+  error() {
+    this.blip(210, 0.18, "sawtooth", 0.12);
+    this.blip(161, 0.25, "sawtooth", 0.08, 0.08);
+  }
+
+  success() {
+    this.blip(240, 0.12, "triangle", 0.14);
+    this.blip(360, 0.14, "triangle", 0.12, 0.08);
+    this.blip(720, 0.22, "sine", 0.08, 0.18);
+  }
+
+  door() {
+    this.thud(68, 0.24);
+    this.blip(112, 0.55, "sawtooth", 0.07, 0.18);
+  }
+
+  machineBreathe() {
+    this.thud(74, 0.13);
+    this.blip(118, 0.7, "sine", 0.05, 0.12);
+  }
+
+  toneAnswer() {
+    this.blip(196, 0.2, "sine", 0.12);
+    this.blip(523.25, 0.2, "sine", 0.12, 0.28);
+    this.blip(329.63, 0.2, "sine", 0.12, 0.56);
+  }
+
+  radioClue() {
+    this.toneAnswer();
+    this.blip(91, 0.5, "sawtooth", 0.05, 0.88);
+  }
+
+  whisper(text) {
+    if ("speechSynthesis" in window && !this.muted) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.72;
+      utterance.pitch = 0.48;
+      utterance.volume = 0.32;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    }
+    this.blip(144, 0.8, "triangle", 0.04);
+  }
+
+  ending() {
+    this.success();
+    this.blip(96, 1.4, "sine", 0.08, 0.25);
+    this.blip(192, 1.2, "triangle", 0.05, 0.45);
+  }
+}
+
+const audio = new AudioEngine();
+
+function addItem(item) {
+  state.items.add(item);
+  state.selectedItem = item;
+  renderInventory();
+}
+
+function removeItem(item) {
+  state.items.delete(item);
+  if (state.selectedItem === item) state.selectedItem = null;
+  renderInventory();
+}
+
+function consumeSelected(item) {
+  if (state.selectedItem !== item || !state.items.has(item)) return false;
+  removeItem(item);
+  return true;
+}
+
+function say(message) {
+  state.message = message;
+  messageEl.textContent = message;
+}
+
+function nudge(message) {
+  audio.error();
+  pulseStatic(8);
+  say(message);
+}
+
+function pulseStatic(amount) {
+  state.static = Math.max(0, Math.min(100, state.static + amount));
+  staticFill.style.width = `${state.static}%`;
+}
+
+function lowerStatic(amount) {
+  state.static = Math.max(0, Math.min(100, state.static - amount));
+  staticFill.style.width = `${state.static}%`;
+}
+
+function renderInventory() {
+  inventoryEl.innerHTML = "";
+  if (!state.items.size) {
+    const empty = document.createElement("p");
+    empty.className = "message";
+    empty.textContent = "Your pockets are dry.";
+    inventoryEl.append(empty);
+    return;
+  }
+
+  for (const item of state.items) {
+    const meta = itemMeta[item];
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "item-button";
+    button.textContent = meta.label;
+    button.style.setProperty("--item-color", meta.color);
+    button.setAttribute("aria-pressed", String(state.selectedItem === item));
+    button.classList.toggle("selected", state.selectedItem === item);
+    button.addEventListener("click", () => {
+      state.selectedItem = state.selectedItem === item ? null : item;
+      audio.click();
+      renderInventory();
+    });
+    inventoryEl.append(button);
+  }
+}
+
+function renderScene() {
+  const scene = scenes[state.scene];
+  roomTitle.textContent = scene.title;
+  sceneImage.style.opacity = "0";
+  window.setTimeout(() => {
+    sceneImage.src = scene.image;
+    sceneImage.style.opacity = "1";
+  }, 120);
+  hotspotLayer.innerHTML = "";
+  scene.hotspots.forEach((hotspot) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "hotspot";
+    button.dataset.label = hotspot.label;
+    button.ariaLabel = hotspot.label;
+    button.style.setProperty("--x", `${hotspot.x}%`);
+    button.style.setProperty("--y", `${hotspot.y}%`);
+    button.style.setProperty("--w", `${hotspot.w}%`);
+    button.style.setProperty("--h", `${hotspot.h}%`);
+    button.addEventListener("mouseenter", () => audio.hover());
+    button.addEventListener("focus", () => audio.hover());
+    button.addEventListener("click", () => {
+      audio.click();
+      hotspot.click();
+      renderInventory();
+    });
+    hotspotLayer.append(button);
+  });
+  audio.setScene(scene.ambience);
+  say(scene.entry);
+}
+
+function go(scene, delay = 140) {
+  window.setTimeout(() => {
+    state.scene = scene;
+    renderScene();
+  }, delay);
+}
+
+function openTonePuzzle() {
+  const slots = ["LOW", "LOW", "LOW"];
+  const options = ["LOW", "MID", "HIGH"];
+  const freqs = { LOW: 196, MID: 329.63, HIGH: 523.25 };
+
+  openModal({
+    title: "Three-Note Panel",
+    body:
+      "Three loose dials sit under a speaker grille. The first dial is cold, the second is hot, the third feels almost human.",
+    content: () => {
+      const grid = document.createElement("div");
+      grid.className = "dial-grid";
+      slots.forEach((slot, index) => {
+        const dial = document.createElement("button");
+        dial.type = "button";
+        dial.className = "dial";
+        dial.innerHTML = `<span>dial ${index + 1}</span>${slot}`;
+        dial.addEventListener("click", () => {
+          const current = options.indexOf(slots[index]);
+          slots[index] = options[(current + 1) % options.length];
+          dial.innerHTML = `<span>dial ${index + 1}</span>${slots[index]}`;
+          audio.blip(freqs[slots[index]], 0.16, "sine", 0.11);
+        });
+        grid.append(dial);
+      });
+      return grid;
+    },
+    actions: [
+      {
+        label: "Play Memory",
+        click: () => audio.radioClue(),
+      },
+      {
+        label: "Set Dials",
+        primary: true,
+        click: () => {
+          if (slots.join("-") === "LOW-HIGH-MID") {
+            state.flags.toneSolved = true;
+            addItem("rust");
+            lowerStatic(12);
+            audio.success();
+            closeModal();
+            say("The panel accepts the notes. A rust bloom opens under the shrine and flakes into your pocket.");
+          } else {
+            pulseStatic(12);
+            audio.error();
+            say("The panel spits heat through the room. Somewhere, a dryer laughs on a broken belt.");
+          }
+        },
+      },
+    ],
+  });
+}
+
+function openNamePuzzle() {
+  const chosen = [];
+  const order = ["soot", "rust", "voice"];
+  const choices = ["rust", "voice", "soot"];
+
+  openModal({
+    title: "Name Basin",
+    body:
+      "The basin has three drains. Your tag lies between them, waiting for stains in the order a machine becomes a mouth.",
+    content: () => {
+      const grid = document.createElement("div");
+      grid.className = "stain-grid";
+      choices.forEach((item) => {
+        const meta = itemMeta[item];
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "stain-choice";
+        button.style.borderColor = meta.color;
+        button.innerHTML = `<span>${chosen.includes(item) ? "placed" : "stain"}</span>${meta.label}`;
+        button.addEventListener("click", () => {
+          if (chosen.includes(item)) return;
+          chosen.push(item);
+          button.innerHTML = `<span>placed</span>${meta.label}`;
+          audio.blip(220 + chosen.length * 110, 0.18, "triangle", 0.12);
+        });
+        grid.append(button);
+      });
+      return grid;
+    },
+    actions: [
+      {
+        label: "Wash Name",
+        primary: true,
+        click: () => {
+          if (chosen.join("-") === order.join("-")) {
+            state.flags.nameRestored = true;
+            removeItem("nameTag");
+            removeItem("soot");
+            removeItem("rust");
+            removeItem("voice");
+            lowerStatic(24);
+            audio.whisper("there you are");
+            closeModal();
+            say("Soot gives the name a shadow. Rust gives it weight. Voice gives it teeth. The front exit unlocks.");
+            window.setTimeout(() => go("lobby"), 900);
+          } else {
+            pulseStatic(18);
+            audio.error();
+            chosen.splice(0, chosen.length);
+            closeModal();
+            say("The basin drains backward. The laundromat almost learns a new way to spell you.");
+          }
+        },
+      },
+    ],
+  });
+}
+
+function openModal({ title, body, content, actions }) {
+  modalRoot.innerHTML = "";
+  modalRoot.hidden = false;
+
+  const modal = document.createElement("article");
+  modal.className = "modal";
+  modal.innerHTML = `
+    <header><h3>${title}</h3></header>
+    <section><p>${body}</p></section>
+    <footer></footer>
+  `;
+  const section = modal.querySelector("section");
+  section.append(content());
+  const footer = modal.querySelector("footer");
+  actions.forEach((action) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "modal-button";
+    button.textContent = action.label;
+    if (action.primary) button.classList.add("primary-action");
+    button.addEventListener("click", action.click);
+    footer.append(button);
+  });
+  const cancel = document.createElement("button");
+  cancel.type = "button";
+  cancel.className = "modal-button";
+  cancel.textContent = "Step Back";
+  cancel.addEventListener("click", closeModal);
+  footer.prepend(cancel);
+  modalRoot.append(modal);
+}
+
+function closeModal() {
+  modalRoot.hidden = true;
+  modalRoot.innerHTML = "";
+}
+
+function win(kind) {
+  if (state.flags.escaped) return;
+  state.flags.escaped = true;
+  audio.ending();
+  const ending = document.createElement("section");
+  ending.className = "ending-card";
+  const endingText = {
+    clean: {
+      title: "You Leave Named",
+      body:
+        "Morning opens like a clean wound. Behind you, the laundromat keeps spinning, but the sound is smaller now. Your name is damp, heavy, yours.",
+    },
+    frayed: {
+      title: "You Leave Frayed",
+      body:
+        "The rain lets you pass, but static follows under your tongue. You keep your name. Mostly. Some nights it answers from a dryer across town.",
+    },
+    soft: {
+      title: "You Call Yourself",
+      body:
+        "The payphone rings once. You answer from the other end and say your name until it fits. The sheets above unfold into a road.",
+    },
+  }[kind];
+  ending.innerHTML = `
+    <div class="ending-copy">
+      <p class="kicker">ending</p>
+      <h2>${endingText.title}</h2>
+      <p>${endingText.body}</p>
+      <button class="primary-action" type="button" id="restartButton">Restart Shift</button>
+    </div>
+  `;
+  document.body.append(ending);
+  document.querySelector("#restartButton").addEventListener("click", () => {
+    window.location.reload();
+  });
+}
+
+function resizeCanvas() {
+  const rect = stage.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+  canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+  canvas.style.width = `${rect.width}px`;
+  canvas.style.height = `${rect.height}px`;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+const motes = Array.from({ length: 72 }, () => ({
+  x: Math.random(),
+  y: Math.random(),
+  r: 0.4 + Math.random() * 1.9,
+  s: 0.05 + Math.random() * 0.2,
+  a: 0.12 + Math.random() * 0.4,
+}));
+
+function animate(time = 0) {
+  const rect = stage.getBoundingClientRect();
+  ctx.clearRect(0, 0, rect.width, rect.height);
+  ctx.globalCompositeOperation = "lighter";
+
+  const sceneColor = {
+    lobby: "147,217,178",
+    shrine: "242,94,55",
+    alley: "76,199,206",
+  }[state.scene];
+
+  motes.forEach((mote, index) => {
+    const drift = Math.sin(time * 0.0003 + index) * 0.012;
+    mote.y += mote.s * 0.0008;
+    if (mote.y > 1.04) mote.y = -0.04;
+    const x = (mote.x + drift) * rect.width;
+    const y = mote.y * rect.height;
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(${sceneColor}, ${mote.a})`;
+    ctx.arc(x, y, mote.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  if (state.static > 35) {
+    ctx.globalCompositeOperation = "source-over";
+    const tears = Math.floor(state.static / 11);
+    for (let i = 0; i < tears; i += 1) {
+      const y = Math.random() * rect.height;
+      const h = 1 + Math.random() * 5;
+      ctx.fillStyle = `rgba(255,255,255,${0.015 + state.static / 5000})`;
+      ctx.fillRect(0, y, rect.width, h);
+    }
+  }
+  requestAnimationFrame(animate);
+}
+
+function startGame({ audioGesture = true } = {}) {
+  if (state.flags.started) return;
+  state.flags.started = true;
+  if (audioGesture) {
+    try {
+      audio.start();
+    } catch {
+      audio.setMuted(true);
+    }
+  }
+  audio.setMuted(state.flags.quiet);
+  startScreen.classList.add("is-hidden");
+  renderScene();
+  if (audioGesture) audio.whisper("wash gently");
+}
+
+beginButton.addEventListener("click", () => startGame());
+
+quietButton.addEventListener("click", () => {
+  state.flags.quiet = !state.flags.quiet;
+  audio.setMuted(state.flags.quiet);
+});
+
+muteButton.addEventListener("click", () => {
+  audio.setMuted(!audio.muted);
+});
+
+revealButton.addEventListener("click", () => {
+  stage.classList.toggle("revealing");
+  revealButton.classList.toggle("active", stage.classList.contains("revealing"));
+  audio.click();
+});
+
+window.addEventListener("resize", resizeCanvas);
+window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !modalRoot.hidden) closeModal();
+  if (event.key.toLowerCase() === "r") {
+    stage.classList.toggle("revealing");
+    revealButton.classList.toggle("active", stage.classList.contains("revealing"));
+  }
+});
+
+resizeCanvas();
+renderInventory();
+staticFill.style.width = `${state.static}%`;
+requestAnimationFrame(animate);
+
+const params = new URLSearchParams(window.location.search);
+
+if (params.has("autostart")) {
+  window.setTimeout(() => startGame({ audioGesture: false }), 120);
+}
+
+if (params.has("debug") && ["localhost", "127.0.0.1", ""].includes(window.location.hostname)) {
+  window.__laundryDebug = {
+    snapshot() {
+      return {
+        scene: state.scene,
+        items: [...state.items],
+        selectedItem: state.selectedItem,
+        flags: { ...state.flags },
+        static: state.static,
+        message: state.message,
+        hotspots: scenes[state.scene].hotspots.map((hotspot) => hotspot.id),
+      };
+    },
+    select(item) {
+      if (!state.items.has(item)) throw new Error(`Missing item: ${item}`);
+      state.selectedItem = item;
+      renderInventory();
+      return this.snapshot();
+    },
+    trigger(id) {
+      const hotspot = scenes[state.scene].hotspots.find((candidate) => candidate.id === id);
+      if (!hotspot) throw new Error(`Missing hotspot ${id} in ${state.scene}`);
+      hotspot.click();
+      renderInventory();
+      return this.snapshot();
+    },
+    solveTone() {
+      state.flags.toneSolved = true;
+      addItem("rust");
+      lowerStatic(12);
+      say("Debug: the panel accepts the notes. Rust flakes into your pocket.");
+      return this.snapshot();
+    },
+    solveName() {
+      if (!(state.items.has("nameTag") && state.items.has("soot") && state.items.has("rust") && state.items.has("voice"))) {
+        throw new Error("Missing final basin items");
+      }
+      state.flags.nameRestored = true;
+      removeItem("nameTag");
+      removeItem("soot");
+      removeItem("rust");
+      removeItem("voice");
+      lowerStatic(24);
+      say("Debug: the name is restored. The front exit unlocks.");
+      return this.snapshot();
+    },
+  };
+}
+
+if (params.has("selftest") && ["localhost", "127.0.0.1", ""].includes(window.location.hostname)) {
+  const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+  const trigger = (id) => {
+    const hotspot = scenes[state.scene].hotspots.find((candidate) => candidate.id === id);
+    if (!hotspot) throw new Error(`Missing hotspot ${id} in ${state.scene}`);
+    hotspot.click();
+    renderInventory();
+  };
+  const select = (item) => {
+    if (!state.items.has(item)) throw new Error(`Missing item ${item}`);
+    state.selectedItem = item;
+    renderInventory();
+  };
+  const snapshot = () => ({
+    scene: state.scene,
+    items: [...state.items],
+    flags: { ...state.flags },
+    static: state.static,
+    message: state.message,
+    ending: document.querySelector(".ending-copy h2")?.textContent || "",
+  });
+
+  (async () => {
+    try {
+      startGame({ audioGesture: false });
+      await wait(260);
+      trigger("basket");
+      trigger("washer");
+      select("wetCoin");
+      trigger("vending");
+      select("blackSoap");
+      trigger("backdoor");
+      await wait(850);
+      select("soot");
+      trigger("centralDryer");
+      trigger("hangingTags");
+      state.flags.toneSolved = true;
+      addItem("rust");
+      trigger("lobbydoor");
+      await wait(260);
+      trigger("radio");
+      trigger("basket");
+      trigger("backdoor");
+      await wait(260);
+      trigger("altar");
+      if (modalRoot.hidden) throw new Error("Name basin modal did not open");
+      state.flags.nameRestored = true;
+      removeItem("nameTag");
+      removeItem("soot");
+      removeItem("rust");
+      removeItem("voice");
+      closeModal();
+      go("lobby", 20);
+      await wait(120);
+      trigger("exit");
+      await wait(260);
+      trigger("openRain");
+      await wait(120);
+      document.body.dataset.selftest = JSON.stringify({ ok: true, ...snapshot() });
+    } catch (error) {
+      document.body.dataset.selftest = JSON.stringify({
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+        ...snapshot(),
+      });
+    }
+  })();
+}
