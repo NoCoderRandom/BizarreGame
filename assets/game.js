@@ -2014,7 +2014,9 @@ bindActivation(quietButton, () => {
 });
 
 bindActivation(muteButton, () => {
-  audio.setMuted(!audio.muted);
+  state.flags.quiet = !audio.muted;
+  audio.setMuted(state.flags.quiet);
+  saveGame();
 });
 
 bindActivation(revealButton, () => {

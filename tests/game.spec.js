@@ -15,6 +15,9 @@ test("player can start and finish the main route", async ({ page }) => {
   await expect(page.locator("#startScreen")).toHaveClass(/is-hidden/);
   await expect(action(page, "lost basket")).toBeVisible();
 
+  await page.getByRole("button", { name: "Toggle sound" }).click();
+  await expect(page.locator("#muteButton")).toHaveClass(/active/);
+
   await expect(action(page, "listen")).toHaveAttribute("aria-keyshortcuts", "1");
   await page.keyboard.press("1");
   await expect(page.locator("#message")).toContainText("washers breathe");
@@ -86,6 +89,7 @@ test("player can start and finish the main route", async ({ page }) => {
   await page.getByRole("button", { name: "Continue Shift" }).click();
   await expect(page.locator("#startScreen")).toHaveClass(/is-hidden/);
   await expect(page.locator("#roomTitle")).toHaveText("Lost Office");
+  await expect(page.locator("#muteButton")).toHaveClass(/active/);
   await expect(item(page, "Brass Key")).toBeVisible();
   await expect(item(page, "Black Soap")).toBeVisible();
   await page.getByRole("button", { name: "Open journal" }).click();
