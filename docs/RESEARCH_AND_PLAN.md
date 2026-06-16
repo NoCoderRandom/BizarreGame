@@ -51,6 +51,7 @@ Planned production slice:
 - Fifth optional 16:9 boiler closet background and side room.
 - Original close-up art for the safe, tone panel, name basin, and shift clock modals.
 - Optimized WebP art assets for faster GitHub Pages loading.
+- Automated asset payload budget for generated WebP artwork.
 - Large, accessible hotspot buttons.
 - Dynamic descriptive alt text for each scene image.
 - Subtle pointer parallax on scene art with reduced-motion support.

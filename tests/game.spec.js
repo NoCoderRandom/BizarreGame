@@ -1,3 +1,5 @@
+const fs = require("fs");
+const path = require("path");
 const { expect, test } = require("@playwright/test");
 
 const action = (page, name) =>
@@ -319,6 +321,18 @@ test("page exposes social sharing metadata", async ({ page }) => {
   await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", "https://nocoderrandom.github.io/BizarreGame/");
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /laundromat-lobby\.webp/);
   await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content", "summary_large_image");
+});
+
+test("artwork stays within a static hosting payload budget", async () => {
+  const imageDir = path.join(__dirname, "..", "assets", "images");
+  const webpFiles = fs.readdirSync(imageDir).filter((file) => file.endsWith(".webp"));
+  const totalBytes = webpFiles.reduce(
+    (total, file) => total + fs.statSync(path.join(imageDir, file)).size,
+    0,
+  );
+
+  expect(webpFiles).toHaveLength(9);
+  expect(totalBytes).toBeLessThan(2_250_000);
 });
 
 test("preloaded artwork assets decode in the browser", async ({ page }) => {
