@@ -207,6 +207,37 @@ test("mobile layout keeps core controls usable", async ({ page }) => {
   expect(layout.scrollWidth).toBeLessThanOrEqual(layout.clientWidth);
 });
 
+test("mobile tone modal keeps controls reachable", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("./");
+
+  await page.getByRole("link", { name: "Begin Shift" }).click();
+  await action(page, "breathing washer").click();
+  await action(page, "soap machine").click();
+  await item(page, "Black Soap").click();
+  await action(page, "red back door").click();
+  await expect(page.locator("#roomTitle")).toHaveText("Back Room");
+
+  await action(page, "three-note panel").click();
+  const toneModal = page.locator(".modal");
+  await expect(toneModal.locator(".modal-art")).toHaveAttribute("src", /tone-panel-closeup\.webp/);
+  await expect(toneModal.getByRole("button", { name: "Set Dials" })).toBeVisible();
+
+  const layout = await page.evaluate(() => {
+    const setDials = [...document.querySelectorAll(".modal button")]
+      .find((button) => button.textContent.trim() === "Set Dials")
+      .getBoundingClientRect();
+    return {
+      buttonBottom: setDials.bottom,
+      clientHeight: document.documentElement.clientHeight,
+      clientWidth: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+    };
+  });
+  expect(layout.buttonBottom).toBeLessThanOrEqual(layout.clientHeight);
+  expect(layout.scrollWidth).toBeLessThanOrEqual(layout.clientWidth);
+});
+
 test("preloaded artwork assets decode in the browser", async ({ page }) => {
   await page.goto("./");
 
