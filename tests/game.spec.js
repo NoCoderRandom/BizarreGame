@@ -7,7 +7,7 @@ const item = (page, name) =>
   page.locator(".inventory-panel").getByRole("button", { name });
 
 test("player can start and finish the main route", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("./");
 
   await expect(page.getByRole("link", { name: "Begin Shift" })).toBeVisible();
   await page.getByRole("link", { name: "Begin Shift" }).click();
