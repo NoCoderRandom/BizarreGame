@@ -55,6 +55,7 @@ Planned production slice:
 - Optional hotspot reveal mode.
 - Objective text that updates with the current puzzle goal.
 - Contextual hint button and clue journal for puzzle recall.
+- Optional lore hotspots that add journal clues about static, rinsing, and endings.
 - In-browser checkpoint saving with a continue option.
 - Static pressure affects visuals and procedural ambience.
 - Optional cloudy sink rinse gives players one static-pressure recovery.

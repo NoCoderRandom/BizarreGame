@@ -19,6 +19,9 @@ test("player can start and finish the main route", async ({ page }) => {
   await expect(page.locator(".modal")).toContainText("breathing washer");
   await page.locator(".modal").getByRole("button", { name: "Step Back" }).click();
 
+  await action(page, "rules poster").click();
+  await expect(page.locator("#message")).toContainText("Rule 7");
+
   for (let i = 0; i < 4; i += 1) {
     await action(page, "front exit").click();
   }
@@ -42,9 +45,13 @@ test("player can start and finish the main route", async ({ page }) => {
   await expect(page.locator("#roomTitle")).toHaveText("Lost Office");
   await action(page, "claim ledger").click();
   await expect(page.locator("#objective")).toContainText("missing vowels");
+  await action(page, "stained notice").click();
+  await expect(page.locator("#message")).toContainText("claimed letters");
   await page.getByRole("button", { name: "Open journal" }).click();
   await expect(page.locator(".modal")).toContainText("2:17");
   await expect(page.locator(".modal")).toContainText("vowel");
+  await expect(page.locator(".modal")).toContainText("high static");
+  await expect(page.locator(".modal")).toContainText("cloudy water");
   await expect(page.locator(".modal")).toContainText("Pockets");
   await expect(page.locator(".modal")).toContainText("Black Soap");
   await page.locator(".modal").getByRole("button", { name: "Step Back" }).click();
@@ -124,6 +131,9 @@ test("player can start and finish the main route", async ({ page }) => {
   await expect(page.locator("#roomTitle")).toHaveText("Lobby");
   await action(page, "front exit").click();
   await expect(page.locator("#roomTitle")).toHaveText("Rain Alley");
+
+  await action(page, "storm drain").click();
+  await expect(page.locator("#message")).toContainText("rain keeps");
 
   await action(page, "open rain").click();
   await expect(page.locator(".ending-copy h2")).toHaveText("You Leave Named");

@@ -110,6 +110,9 @@ const clueText = {
   vowels: "The ledger says every vowel in your name was filed away.",
   safe: "The claim safe opens with 217.",
   finalOrder: "The basin asks for weight, breath, and letters: rust, voice, vowel slip.",
+  staticEnding: "The rules poster warns that high static makes the rain fray names.",
+  sinkRinse: "An office notice says cloudy water can rinse static from claimed letters once.",
+  endingFork: "The alley has more than one exit: rain, phone, and whatever static makes of you.",
 };
 
 const staticApparitions = {
@@ -242,6 +245,19 @@ const scenes = {
           addItem("soot");
           audio.pickup();
           say("Under the basket is a pinch of soft black soot. It stains your fingerprints before you touch it.");
+        },
+      },
+      {
+        id: "rulesPoster",
+        label: "rules poster",
+        x: 60,
+        y: 9,
+        w: 13,
+        h: 20,
+        click: () => {
+          rememberClue("staticEnding");
+          say("The rules poster is mostly mildew. Rule 7 remains: leave loud and the rain will keep a little of you.");
+          if (state.static >= 35) flashApparition("leave loud, leave frayed");
         },
       },
       {
@@ -415,6 +431,18 @@ const scenes = {
           nudge("The cloudy sink ripples into four empty oval shapes. Something is missing from the word that is you.");
         },
       },
+      {
+        id: "notice",
+        label: "stained notice",
+        x: 62,
+        y: 14,
+        w: 10,
+        h: 19,
+        click: () => {
+          rememberClue("sinkRinse");
+          say("A stained office notice reads like a policy and a dare: claimed letters may be rinsed once before leaving the counter.");
+        },
+      },
     ],
   },
   shrine: {
@@ -584,6 +612,18 @@ const scenes = {
         click: () => {
           whisper("do not fold yourself smaller");
           say("The hanging sheets turn in the dawn wind. For a moment, every cloth is shaped like a door.");
+        },
+      },
+      {
+        id: "stormDrain",
+        label: "storm drain",
+        x: 71,
+        y: 72,
+        w: 20,
+        h: 16,
+        click: () => {
+          rememberClue("endingFork");
+          say("The storm drain speaks through water teeth: rain keeps the named, phones call the soft, static follows the frayed.");
         },
       },
       {
