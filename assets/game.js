@@ -1964,6 +1964,22 @@ function closeModal() {
   lastModalFocus = null;
 }
 
+function trapModalFocus(event) {
+  const focusable = [...modalRoot.querySelectorAll("button, a[href], input, select, textarea, [tabindex]:not([tabindex='-1'])")]
+    .filter((element) => !element.disabled);
+  if (!focusable.length) return;
+
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
 function win(kind) {
   if (state.flags.escaped) return;
   state.flags.escaped = true;
@@ -2161,6 +2177,10 @@ stage.addEventListener("pointermove", updateStageLook);
 stage.addEventListener("pointerleave", resetStageLook);
 reduceMotionQuery.addEventListener("change", resetStageLook);
 window.addEventListener("keydown", (event) => {
+  if (event.key === "Tab" && !modalRoot.hidden) {
+    trapModalFocus(event);
+    return;
+  }
   if (event.key === "Escape" && !modalRoot.hidden) closeModal();
   if (!state.flags.started || !modalRoot.hidden) return;
 

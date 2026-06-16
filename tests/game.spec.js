@@ -284,7 +284,11 @@ test("start screen credits describe assets and audio", async ({ page }) => {
   await page.getByRole("button", { name: "Credits" }).click();
   await expect(page.locator(".modal")).toContainText("generated original WebP assets");
   await expect(page.locator(".modal")).toContainText("procedural Web Audio");
-  await page.locator(".modal").getByRole("button", { name: "Step Back" }).click();
+  const stepBack = page.locator(".modal").getByRole("button", { name: "Step Back" });
+  await expect(stepBack).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(stepBack).toBeFocused();
+  await stepBack.click();
   await expect(page.locator("#startScreen")).not.toHaveClass(/is-hidden/);
 });
 
