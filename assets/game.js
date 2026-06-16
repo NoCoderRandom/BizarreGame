@@ -631,6 +631,7 @@ const scenes = {
           }
           state.flags.valveTurned = true;
           lowerStatic(14);
+          audio.steamRelease();
           whisper("pressure gives back");
           say("You turn the red valve. Steam coughs into the ceiling, and the room gives some of your static back.");
         },
@@ -862,6 +863,25 @@ class AudioEngine {
     osc.stop(now + dur + 0.03);
   }
 
+  noiseHit(dur = 0.18, gain = 0.08, when = 0, frequency = 1200, type = "bandpass") {
+    if (!this.ctx || this.muted) return;
+    const now = this.ctx.currentTime + when;
+    const source = this.ctx.createBufferSource();
+    const filter = this.ctx.createBiquadFilter();
+    const env = this.ctx.createGain();
+    source.buffer = this.noiseBuffer(Math.max(0.25, dur + 0.1));
+    filter.type = type;
+    filter.frequency.value = frequency;
+    filter.Q.value = 0.8;
+    env.gain.setValueAtTime(0.0001, now);
+    env.gain.exponentialRampToValueAtTime(gain, now + 0.025);
+    env.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    source.connect(filter).connect(env).connect(this.master);
+    env.connect(this.delay);
+    source.start(now);
+    source.stop(now + dur + 0.08);
+  }
+
   thud(freq = 92, gain = 0.18) {
     this.blip(freq, 0.28, "triangle", gain);
     this.blip(freq * 0.49, 0.38, "sine", gain * 0.5, 0.02);
@@ -884,12 +904,14 @@ class AudioEngine {
   error() {
     this.blip(210, 0.18, "sawtooth", 0.12);
     this.blip(161, 0.25, "sawtooth", 0.08, 0.08);
+    this.noiseHit(0.16, 0.08, 0.02, 640, "lowpass");
   }
 
   success() {
     this.blip(240, 0.12, "triangle", 0.14);
     this.blip(360, 0.14, "triangle", 0.12, 0.08);
     this.blip(720, 0.22, "sine", 0.08, 0.18);
+    this.noiseHit(0.28, 0.045, 0.12, 1800, "highpass");
   }
 
   door() {
@@ -904,13 +926,17 @@ class AudioEngine {
 
   toneAnswer() {
     this.blip(196, 0.2, "sine", 0.12);
+    this.noiseHit(0.08, 0.026, 0.02, 700, "bandpass");
     this.blip(523.25, 0.2, "sine", 0.12, 0.28);
+    this.noiseHit(0.08, 0.026, 0.3, 1700, "bandpass");
     this.blip(329.63, 0.2, "sine", 0.12, 0.56);
+    this.noiseHit(0.08, 0.026, 0.58, 1100, "bandpass");
   }
 
   radioClue() {
     this.toneAnswer();
     this.blip(91, 0.5, "sawtooth", 0.05, 0.88);
+    this.noiseHit(0.62, 0.07, 0.82, 1200, "bandpass");
   }
 
   whisper(text) {
@@ -942,6 +968,13 @@ class AudioEngine {
     this.thud(58, 0.19);
     this.blip(420, 0.45, "triangle", 0.06, 0.08);
     this.blip(122, 0.9, "sawtooth", 0.045, 0.16);
+    this.noiseHit(0.95, 0.055, 0.04, 2100, "highpass");
+  }
+
+  steamRelease() {
+    this.noiseHit(0.72, 0.14, 0, 1700, "highpass");
+    this.blip(84, 0.42, "sawtooth", 0.07, 0.08);
+    this.blip(48, 0.75, "sine", 0.05, 0.2);
   }
 }
 
@@ -1410,36 +1443,69 @@ function openTonePuzzle() {
   const slots = ["LOW", "LOW", "LOW"];
   const options = ["LOW", "MID", "HIGH"];
   const freqs = { LOW: 196, MID: 329.63, HIGH: 523.25 };
+  let echoStrip = null;
+  let echoCaption = null;
+
+  const playMemory = () => {
+    rememberClue("radioTune");
+    audio.radioClue();
+    if (!echoStrip || !echoCaption) return;
+    echoCaption.textContent = "The speaker flashes its memory: low, high, middle.";
+    echoStrip.classList.remove("is-playing");
+    window.requestAnimationFrame(() => {
+      echoStrip.classList.add("is-playing");
+    });
+  };
 
   openModal({
     title: "Three-Note Panel",
     body:
       "Three loose dials sit under a speaker grille. The first dial is cold, the second is hot, the third feels almost human.",
+    image: "assets/images/tone-panel-closeup.webp",
+    imageAlt: "A wet rusted three-note tone panel with a speaker grille, three rotary dials, and teal and amber indicator bulbs.",
     content: () => {
+      const panel = document.createElement("div");
+      panel.className = "tone-panel";
+
       const grid = document.createElement("div");
       grid.className = "dial-grid";
       slots.forEach((slot, index) => {
         const dial = document.createElement("button");
         dial.type = "button";
         dial.className = "dial";
+        dial.setAttribute("aria-label", `dial ${index + 1}: ${slot}`);
         dial.innerHTML = `<span>dial ${index + 1}</span>${slot}`;
         bindActivation(dial, () => {
           const current = options.indexOf(slots[index]);
           slots[index] = options[(current + 1) % options.length];
+          dial.setAttribute("aria-label", `dial ${index + 1}: ${slots[index]}`);
           dial.innerHTML = `<span>dial ${index + 1}</span>${slots[index]}`;
           audio.blip(freqs[slots[index]], 0.16, "sine", 0.11);
         });
         grid.append(dial);
       });
-      return grid;
+
+      echoStrip = document.createElement("div");
+      echoStrip.className = "echo-strip";
+      echoStrip.setAttribute("aria-label", "visual memory cue low high middle");
+      ["low", "high", "middle"].forEach((note) => {
+        const bar = document.createElement("i");
+        bar.className = `echo-bar ${note}`;
+        bar.setAttribute("aria-hidden", "true");
+        echoStrip.append(bar);
+      });
+
+      echoCaption = document.createElement("p");
+      echoCaption.className = "echo-caption";
+      echoCaption.textContent = "The speaker grille is quiet, waiting to repeat the radio's memory.";
+
+      panel.append(grid, echoStrip, echoCaption);
+      return panel;
     },
     actions: [
       {
         label: "Play Memory",
-        click: () => {
-          rememberClue("radioTune");
-          audio.radioClue();
-        },
+        click: playMemory,
       },
       {
         label: "Set Dials",

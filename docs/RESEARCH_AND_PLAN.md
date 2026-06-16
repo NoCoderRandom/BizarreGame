@@ -49,7 +49,7 @@ Planned production slice:
 - Three original 16:9 scene backgrounds.
 - Fourth original 16:9 lost-and-found office background.
 - Fifth optional 16:9 boiler closet background and side room.
-- Original close-up art for the safe and name basin puzzle modals.
+- Original close-up art for the safe, tone panel, and name basin puzzle modals.
 - Optimized WebP art assets for faster GitHub Pages loading.
 - Large, accessible hotspot buttons.
 - Dynamic descriptive alt text for each scene image.
@@ -65,7 +65,7 @@ Planned production slice:
 - Optional cloudy sink rinse gives players one static-pressure recovery.
 - Whisper/static apparition captions for atmosphere and sound-off readability.
 - Procedural phone/rain cues for ending choices.
-- Procedural ambient audio and one sound clue puzzle.
+- Procedural ambient audio, richer one-shot sound effects, and one sound clue puzzle with a visual echo cue.
 - Three puzzle gates: claim safe, tone panel, and name basin.
 - Multiple endings based on route/static level.
 - Persistent ending stamps with 1/3 replay progress tracking.

@@ -121,6 +121,9 @@ test("player can start and finish the main route", async ({ page }) => {
   await action(page, "three-note panel").click();
   const toneModal = page.locator(".modal");
   await expect(toneModal).toContainText("Three-Note Panel");
+  await expect(toneModal.locator(".modal-art")).toHaveAttribute("src", /tone-panel-closeup\.webp/);
+  await toneModal.getByRole("button", { name: "Play Memory" }).click();
+  await expect(toneModal.locator(".echo-caption")).toContainText("low, high, middle");
   const dials = toneModal.locator(".dial");
   await dials.nth(1).click();
   await dials.nth(1).click();
