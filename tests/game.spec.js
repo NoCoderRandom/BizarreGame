@@ -6,6 +6,23 @@ const action = (page, name) =>
 const item = (page, name) =>
   page.locator(".inventory-panel").getByRole("button", { name });
 
+const browserErrors = new WeakMap();
+
+test.beforeEach(async ({ page }) => {
+  const errors = [];
+  browserErrors.set(page, errors);
+  page.on("pageerror", (error) => {
+    errors.push(error.message);
+  });
+  page.on("console", (message) => {
+    if (message.type() === "error") errors.push(message.text());
+  });
+});
+
+test.afterEach(async ({ page }) => {
+  expect(browserErrors.get(page)).toEqual([]);
+});
+
 test("player can start and finish the main route", async ({ page }) => {
   await page.goto("./");
 
