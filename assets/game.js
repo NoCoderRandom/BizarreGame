@@ -179,24 +179,28 @@ const endingMeta = {
   clean: {
     title: "You Leave Named",
     image: "assets/images/rain-alley.webp",
+    hint: "Restore your name and walk into the open rain while static is low.",
     body:
       "Morning opens like a clean wound. Behind you, the laundromat keeps spinning, but the sound is smaller now. Your name is damp, heavy, yours.",
   },
   frayed: {
     title: "You Leave Frayed",
     image: "assets/images/rain-alley.webp",
+    hint: "Let static climb high, restore your name, then leave through the open rain.",
     body:
       "The rain lets you pass, but static follows under your tongue. You keep your name. Mostly. Some nights it answers from a dryer across town.",
   },
   soft: {
     title: "You Call Yourself",
     image: "assets/images/rain-alley.webp",
+    hint: "Restore your name, enter the rain alley, and answer the payphone.",
     body:
       "The payphone rings once. You answer from the other end and say your name until it fits. The sheets above unfold into a road.",
   },
   attendant: {
     title: "You Clock In",
     image: "assets/images/shift-clock-closeup.webp",
+    hint: "Restore your name, return to the lobby, and punch the shift clock.",
     body:
       "You slide your restored name into the shift clock. It stamps you with a time that has no numbers. By morning, the machines are quiet because they are listening to you.",
   },
@@ -1191,9 +1195,15 @@ function renderEndingStamps() {
   list.className = "ending-stamp-list";
   endingOrder.forEach((ending) => {
     const stamp = document.createElement("span");
+    const found = endings.has(ending);
     stamp.className = "ending-stamp";
-    stamp.classList.toggle("locked", !endings.has(ending));
-    stamp.textContent = endings.has(ending) ? endingMeta[ending].title : "Unknown ending";
+    stamp.classList.toggle("locked", !found);
+    stamp.textContent = found ? endingMeta[ending].title : "Unknown ending";
+    stamp.title = found ? endingMeta[ending].title : endingMeta[ending].hint;
+    stamp.setAttribute(
+      "aria-label",
+      found ? endingMeta[ending].title : `Unknown ending. ${endingMeta[ending].hint}`,
+    );
     list.append(stamp);
   });
   endingStampsEl.append(list);

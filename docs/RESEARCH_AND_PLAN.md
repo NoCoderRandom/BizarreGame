@@ -72,6 +72,7 @@ Planned production slice:
 - Four endings based on route/static level and the optional shift-clock choice.
 - Ending cards use route-specific background art.
 - Persistent ending stamps with 1/4 replay progress tracking.
+- Locked ending stamps expose subtle route hints for replay.
 - Local ending records can be cleared from the start screen.
 - Static GitHub Pages-ready deployment.
 
