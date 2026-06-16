@@ -1700,9 +1700,25 @@ bindActivation(hintButton, () => {
 window.addEventListener("resize", resizeCanvas);
 window.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !modalRoot.hidden) closeModal();
-  if (event.key.toLowerCase() === "r") {
+  if (!state.flags.started || !modalRoot.hidden) return;
+
+  const key = event.key.toLowerCase();
+  if (key === "r") {
+    event.preventDefault();
     stage.classList.toggle("revealing");
     revealButton.classList.toggle("active", stage.classList.contains("revealing"));
+    audio.click();
+  } else if (key === "h") {
+    event.preventDefault();
+    audio.click();
+    openHint();
+  } else if (key === "j") {
+    event.preventDefault();
+    audio.click();
+    openJournal();
+  } else if (key === "m") {
+    event.preventDefault();
+    audio.setMuted(!audio.muted);
   }
 });
 

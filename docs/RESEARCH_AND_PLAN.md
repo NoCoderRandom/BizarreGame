@@ -50,6 +50,7 @@ Planned production slice:
 - Fourth original 16:9 lost-and-found office background.
 - Original close-up art for the safe and name basin puzzle modals.
 - Large, accessible hotspot buttons.
+- Keyboard shortcuts for hint, journal, reveal, and mute controls.
 - Inventory with selectable strange items.
 - Inventory inspection text that doubles as diegetic hinting.
 - Optional hotspot reveal mode.
