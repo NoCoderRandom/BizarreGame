@@ -22,6 +22,7 @@ const hintButton = document.querySelector("#hintButton");
 const modalRoot = document.querySelector("#modalRoot");
 const actionsEl = document.querySelector("#actions");
 let apparitionTimer = null;
+let lastModalFocus = null;
 const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 const SAVE_KEY = "laundromat-name-save-v2";
@@ -1867,6 +1868,7 @@ function openHint() {
 }
 
 function openModal({ title, body, content, actions, image, imageAlt = "" }) {
+  lastModalFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   modalRoot.innerHTML = "";
   modalRoot.hidden = false;
 
@@ -1903,11 +1905,16 @@ function openModal({ title, body, content, actions, image, imageAlt = "" }) {
   bindActivation(cancel, closeModal);
   footer.prepend(cancel);
   modalRoot.append(modal);
+  window.setTimeout(() => modal.querySelector("button")?.focus(), 0);
 }
 
 function closeModal() {
   modalRoot.hidden = true;
   modalRoot.innerHTML = "";
+  if (lastModalFocus && document.contains(lastModalFocus)) {
+    lastModalFocus.focus();
+  }
+  lastModalFocus = null;
 }
 
 function win(kind) {

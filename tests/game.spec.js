@@ -35,6 +35,7 @@ test("player can start and finish the main route", async ({ page }) => {
 
   await page.keyboard.press("H");
   await expect(page.locator(".modal")).toContainText("breathing washer");
+  await expect(page.locator(".modal button").first()).toBeFocused();
   await page.locator(".modal").getByRole("button", { name: "Step Back" }).click();
 
   await page.keyboard.press("J");
