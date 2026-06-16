@@ -19,6 +19,16 @@ test("player can start and finish the main route", async ({ page }) => {
   await expect(page.locator("#message")).toContainText("washers breathe");
   await expect(page.locator("#apparition")).toContainText("washers breathe");
 
+  const stageBox = await page.locator("#stage").boundingBox();
+  expect(stageBox).not.toBeNull();
+  await page.mouse.move(stageBox.x + stageBox.width * 0.2, stageBox.y + stageBox.height * 0.3);
+  const stageLook = await page.locator("#stage").evaluate((element) => ({
+    x: element.style.getPropertyValue("--look-x"),
+    y: element.style.getPropertyValue("--look-y"),
+  }));
+  expect(stageLook.x).not.toBe("0px");
+  expect(stageLook.y).not.toBe("0px");
+
   await page.keyboard.press("H");
   await expect(page.locator(".modal")).toContainText("breathing washer");
   await page.locator(".modal").getByRole("button", { name: "Step Back" }).click();

@@ -22,6 +22,7 @@ const hintButton = document.querySelector("#hintButton");
 const modalRoot = document.querySelector("#modalRoot");
 const actionsEl = document.querySelector("#actions");
 let apparitionTimer = null;
+const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 const SAVE_KEY = "laundromat-name-save-v2";
 const ENDINGS_KEY = "laundromat-endings-v1";
@@ -1286,6 +1287,20 @@ function joltStage() {
   window.setTimeout(() => stage.classList.remove("is-jolting"), 260);
 }
 
+function resetStageLook() {
+  stage.style.setProperty("--look-x", "0px");
+  stage.style.setProperty("--look-y", "0px");
+}
+
+function updateStageLook(event) {
+  if (reduceMotionQuery.matches || event.pointerType === "touch") return;
+  const rect = stage.getBoundingClientRect();
+  const x = ((event.clientX - rect.left) / rect.width - 0.5) * -10;
+  const y = ((event.clientY - rect.top) / rect.height - 0.5) * -7;
+  stage.style.setProperty("--look-x", `${x.toFixed(2)}px`);
+  stage.style.setProperty("--look-y", `${y.toFixed(2)}px`);
+}
+
 function flashApparition(text) {
   window.clearTimeout(apparitionTimer);
   apparitionEl.textContent = text;
@@ -1448,6 +1463,7 @@ function renderScene() {
   const scene = scenes[state.scene];
   roomTitle.textContent = scene.title;
   renderObjective();
+  resetStageLook();
   sceneImage.style.opacity = "0";
   window.setTimeout(() => {
     sceneImage.src = scene.image;
@@ -2001,6 +2017,9 @@ bindActivation(hintButton, () => {
 });
 
 window.addEventListener("resize", resizeCanvas);
+stage.addEventListener("pointermove", updateStageLook);
+stage.addEventListener("pointerleave", resetStageLook);
+reduceMotionQuery.addEventListener("change", resetStageLook);
 window.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !modalRoot.hidden) closeModal();
   if (!state.flags.started || !modalRoot.hidden) return;

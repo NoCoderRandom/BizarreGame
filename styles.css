@@ -193,6 +193,8 @@ a {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
+  --look-x: 0px;
+  --look-y: 0px;
   background: #050606;
   border: 1px solid rgba(255, 255, 255, 0.14);
   overflow: hidden;
@@ -218,10 +220,13 @@ a {
 .scene-image {
   object-fit: cover;
   user-select: none;
+  transform: translate3d(var(--look-x), var(--look-y), 0) scale(1.018);
+  will-change: transform, filter, opacity;
   filter: brightness(1.08) contrast(1.08) saturate(1.04);
   transition:
     opacity 220ms ease,
-    filter 220ms ease;
+    filter 220ms ease,
+    transform 180ms ease-out;
 }
 
 .fx-canvas,
@@ -977,6 +982,10 @@ body.static-critical .message-panel {
   .apparition.show,
   .echo-strip.is-playing .echo-bar {
     animation: none;
+  }
+
+  .scene-image {
+    transform: none;
   }
 
   .apparition.show {
