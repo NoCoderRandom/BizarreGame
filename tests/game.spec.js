@@ -312,6 +312,15 @@ test("start screen celebrates a complete ending collection", async ({ page }) =>
   await expect(page.locator("#endingStamps")).toContainText("You Clock In");
 });
 
+test("page exposes social sharing metadata", async ({ page }) => {
+  await page.goto("./");
+
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", "The Laundromat Takes Your Name");
+  await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", "https://nocoderrandom.github.io/BizarreGame/");
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /laundromat-lobby\.webp/);
+  await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content", "summary_large_image");
+});
+
 test("preloaded artwork assets decode in the browser", async ({ page }) => {
   await page.goto("./");
 

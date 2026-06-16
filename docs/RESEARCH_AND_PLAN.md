@@ -80,6 +80,7 @@ Planned production slice:
 - Journal shows discovered endings and remaining ending-route hints.
 - Local ending records can be cleared from the start screen.
 - In-app credits modal documents generated artwork, procedural audio, and test stack.
+- Social sharing metadata for the GitHub Pages build.
 - Static GitHub Pages-ready deployment.
 
 ## Asset Strategy
