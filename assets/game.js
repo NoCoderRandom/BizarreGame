@@ -12,6 +12,7 @@ const staticFill = document.querySelector("#staticFill");
 const startScreen = document.querySelector("#startScreen");
 const beginButton = document.querySelector("#beginButton");
 const continueButton = document.querySelector("#continueButton");
+const endingStampsEl = document.querySelector("#endingStamps");
 const quietButton = document.querySelector("#quietButton");
 const muteButton = document.querySelector("#muteButton");
 const revealButton = document.querySelector("#revealButton");
@@ -21,6 +22,7 @@ const modalRoot = document.querySelector("#modalRoot");
 const actionsEl = document.querySelector("#actions");
 
 const SAVE_KEY = "laundromat-name-save-v2";
+const ENDINGS_KEY = "laundromat-endings-v1";
 const DEFAULT_MESSAGE = "The machines wait with their round black eyes.";
 
 const defaultFlags = {
@@ -105,6 +107,24 @@ const clueText = {
   vowels: "The ledger says every vowel in your name was filed away.",
   safe: "The claim safe opens with 217.",
   finalOrder: "The basin asks for weight, breath, and letters: rust, voice, vowel slip.",
+};
+
+const endingMeta = {
+  clean: {
+    title: "You Leave Named",
+    body:
+      "Morning opens like a clean wound. Behind you, the laundromat keeps spinning, but the sound is smaller now. Your name is damp, heavy, yours.",
+  },
+  frayed: {
+    title: "You Leave Frayed",
+    body:
+      "The rain lets you pass, but static follows under your tongue. You keep your name. Mostly. Some nights it answers from a dryer across town.",
+  },
+  soft: {
+    title: "You Call Yourself",
+    body:
+      "The payphone rings once. You answer from the other end and say your name until it fits. The sheets above unfold into a road.",
+  },
 };
 
 const scenes = {
@@ -826,6 +846,52 @@ function clearSave() {
   updateContinueButton();
 }
 
+function readEndings() {
+  try {
+    const raw = window.localStorage?.getItem(ENDINGS_KEY);
+    const endings = raw ? JSON.parse(raw) : [];
+    return Array.isArray(endings)
+      ? endings.filter((ending) => endingMeta[ending])
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function recordEnding(kind) {
+  if (!endingMeta[kind]) return;
+  const endings = new Set(readEndings());
+  endings.add(kind);
+  try {
+    window.localStorage?.setItem(ENDINGS_KEY, JSON.stringify([...endings]));
+  } catch {
+    return;
+  }
+  renderEndingStamps();
+}
+
+function renderEndingStamps() {
+  const endings = readEndings();
+  endingStampsEl.innerHTML = "";
+  endingStampsEl.hidden = !endings.length;
+  if (!endings.length) return;
+
+  const label = document.createElement("p");
+  label.className = "ending-stamps-label";
+  label.textContent = "Endings found";
+  endingStampsEl.append(label);
+
+  const list = document.createElement("div");
+  list.className = "ending-stamp-list";
+  endings.forEach((ending) => {
+    const stamp = document.createElement("span");
+    stamp.className = "ending-stamp";
+    stamp.textContent = endingMeta[ending].title;
+    list.append(stamp);
+  });
+  endingStampsEl.append(list);
+}
+
 function hydrateState(save) {
   if (!save || typeof save !== "object") return false;
   const savedItems = Array.isArray(save.items)
@@ -1373,26 +1439,11 @@ function win(kind) {
   if (state.flags.escaped) return;
   state.flags.escaped = true;
   clearSave();
+  recordEnding(kind);
   audio.ending();
   const ending = document.createElement("section");
   ending.className = "ending-card";
-  const endingText = {
-    clean: {
-      title: "You Leave Named",
-      body:
-        "Morning opens like a clean wound. Behind you, the laundromat keeps spinning, but the sound is smaller now. Your name is damp, heavy, yours.",
-    },
-    frayed: {
-      title: "You Leave Frayed",
-      body:
-        "The rain lets you pass, but static follows under your tongue. You keep your name. Mostly. Some nights it answers from a dryer across town.",
-    },
-    soft: {
-      title: "You Call Yourself",
-      body:
-        "The payphone rings once. You answer from the other end and say your name until it fits. The sheets above unfold into a road.",
-    },
-  }[kind];
+  const endingText = endingMeta[kind];
   ending.innerHTML = `
     <div class="ending-copy">
       <p class="kicker">ending</p>
@@ -1536,6 +1587,7 @@ resizeCanvas();
 renderInventory();
 renderStatic();
 updateContinueButton();
+renderEndingStamps();
 requestAnimationFrame(animate);
 
 const params = new URLSearchParams(window.location.search);

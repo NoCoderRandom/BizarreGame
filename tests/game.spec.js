@@ -126,4 +126,6 @@ test("player can start and finish the main route", async ({ page }) => {
   await page.goto("./");
   await expect(page.getByRole("link", { name: "Begin Shift" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Continue Shift" })).toBeHidden();
+  await expect(page.locator("#endingStamps")).toContainText("Endings found");
+  await expect(page.locator("#endingStamps")).toContainText("You Leave Named");
 });

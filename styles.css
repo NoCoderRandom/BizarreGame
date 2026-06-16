@@ -445,6 +445,38 @@ body.static-critical .message-panel {
   margin-top: 24px;
 }
 
+.ending-stamps {
+  max-width: 560px;
+  margin-top: 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.ending-stamps-label {
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.ending-stamp-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ending-stamp {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-left-color: rgba(241, 210, 131, 0.78);
+  background: rgba(0, 0, 0, 0.52);
+  color: #f3ead7;
+  padding: 6px 9px;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
 .primary-action,
 .ghost-action,
 .modal-button {
