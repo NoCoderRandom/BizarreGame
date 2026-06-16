@@ -2,6 +2,8 @@
 
 A short surreal point-and-click horror game for the browser.
 
+Play it here: <https://nocoderrandom.github.io/BizarreGame/>
+
 ## Play Locally
 
 From this folder:
