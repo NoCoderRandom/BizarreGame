@@ -27,7 +27,27 @@ const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 const SAVE_KEY = "laundromat-name-save-v2";
 const ENDINGS_KEY = "laundromat-endings-v1";
+const AUDIO_PREF_KEY = "laundromat-audio-preference-v1";
 const DEFAULT_MESSAGE = "The machines wait with their round black eyes.";
+
+function readAudioPreference() {
+  try {
+    const raw = window.localStorage?.getItem(AUDIO_PREF_KEY);
+    if (raw === "muted") return true;
+    if (raw === "sound") return false;
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function writeAudioPreference(muted) {
+  try {
+    window.localStorage?.setItem(AUDIO_PREF_KEY, muted ? "muted" : "sound");
+  } catch {
+    // Audio preference is nice to keep, but storage failures should not block play.
+  }
+}
 
 const defaultFlags = {
   started: false,
@@ -101,7 +121,7 @@ const state = {
   scene: "lobby",
   items: new Set(),
   selectedItem: null,
-  flags: { ...defaultFlags },
+  flags: { ...defaultFlags, quiet: readAudioPreference() ?? false },
   clues: new Set(),
   static: 8,
   message: DEFAULT_MESSAGE,
@@ -1253,6 +1273,7 @@ function loadGame({ audioGesture = true } = {}) {
     clearSave();
     return false;
   }
+  state.flags.quiet = readAudioPreference() ?? state.flags.quiet;
   if (audioGesture) {
     try {
       audio.start();
@@ -2060,7 +2081,7 @@ function startGame({ audioGesture = true } = {}) {
 }
 
 bindActivation(beginButton, () => {
-  const quiet = state.flags.quiet;
+  const quiet = readAudioPreference() ?? state.flags.quiet;
   clearSave();
   resetGameState();
   state.flags.quiet = quiet;
@@ -2079,12 +2100,14 @@ bindActivation(continueButton, () => {
 
 bindActivation(quietButton, () => {
   state.flags.quiet = !state.flags.quiet;
+  writeAudioPreference(state.flags.quiet);
   audio.setMuted(state.flags.quiet);
   saveGame();
 });
 
 bindActivation(muteButton, () => {
   state.flags.quiet = !audio.muted;
+  writeAudioPreference(state.flags.quiet);
   audio.setMuted(state.flags.quiet);
   saveGame();
 });
@@ -2140,6 +2163,7 @@ window.addEventListener("keydown", (event) => {
 });
 
 resizeCanvas();
+audio.setMuted(state.flags.quiet);
 renderInventory();
 renderStatic();
 updateContinueButton();

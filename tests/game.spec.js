@@ -251,6 +251,16 @@ test("mobile tone modal keeps controls reachable", async ({ page }) => {
   expect(layout.scrollWidth).toBeLessThanOrEqual(layout.clientWidth);
 });
 
+test("start screen sound preference persists across reload", async ({ page }) => {
+  await page.goto("./");
+
+  await page.getByRole("button", { name: "Sound On" }).click();
+  await expect(page.getByRole("button", { name: "Sound Off" })).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Sound Off" })).toBeVisible();
+});
+
 test("preloaded artwork assets decode in the browser", async ({ page }) => {
   await page.goto("./");
 
