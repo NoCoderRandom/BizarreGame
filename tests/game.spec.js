@@ -15,6 +15,10 @@ test("player can start and finish the main route", async ({ page }) => {
   await expect(page.locator("#startScreen")).toHaveClass(/is-hidden/);
   await expect(action(page, "lost basket")).toBeVisible();
 
+  await action(page, "listen").click();
+  await expect(page.locator("#message")).toContainText("washers breathe");
+  await expect(page.locator("#apparition")).toContainText("washers breathe");
+
   await page.keyboard.press("H");
   await expect(page.locator(".modal")).toContainText("breathing washer");
   await page.locator(".modal").getByRole("button", { name: "Step Back" }).click();

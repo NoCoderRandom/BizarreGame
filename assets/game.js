@@ -146,6 +146,34 @@ const staticApparitions = {
   ],
 };
 
+const roomListen = {
+  lobby: {
+    caption: "washers breathe in different names",
+    message:
+      "You listen. The washers breathe in staggered circles, and one dryer ticks exactly like teeth.",
+  },
+  office: {
+    caption: "2:17 scratches behind the ledger",
+    message:
+      "You listen. Paper drags inside the walls, filing cabinets cough, and the clock keeps failing to become morning.",
+  },
+  shrine: {
+    caption: "low high middle",
+    message:
+      "You listen. The dryers answer each other in low, high, middle, then fall silent like they have been caught practicing.",
+  },
+  boiler: {
+    caption: "pressure wants a mouth",
+    message:
+      "You listen. Pipes knock behind the boiler, steam chews the dark, and the gauge hums with your almost-name.",
+  },
+  alley: {
+    caption: "rain remembers the exits",
+    message:
+      "You listen. Rain combs the sheets overhead, the payphone rings under the water, and the storm drain says stay or go.",
+  },
+};
+
 const endingMeta = {
   clean: {
     title: "You Leave Named",
@@ -1009,6 +1037,33 @@ class AudioEngine {
     this.blip(108.5, 0.5, "sawtooth", 0.05, 0.22);
     this.noiseHit(0.32, 0.08, 0.08, 820, "bandpass");
   }
+
+  listen(scene) {
+    const cues = {
+      lobby: () => {
+        this.machineBreathe();
+        this.noiseHit(0.24, 0.045, 0.18, 1100, "bandpass");
+      },
+      office: () => {
+        this.blip(217, 0.11, "square", 0.055);
+        this.blip(108.5, 0.35, "triangle", 0.045, 0.14);
+        this.noiseHit(0.28, 0.04, 0.22, 760, "bandpass");
+      },
+      shrine: () => {
+        this.toneAnswer();
+        this.thud(63, 0.1);
+      },
+      boiler: () => {
+        this.noiseHit(0.58, 0.09, 0, 1600, "highpass");
+        this.thud(52, 0.09);
+      },
+      alley: () => {
+        this.rainBreak();
+        this.phoneRing();
+      },
+    };
+    (cues[scene] || cues.lobby)();
+  }
 }
 
 const audio = new AudioEngine();
@@ -1300,6 +1355,13 @@ function lowerStatic(amount) {
   saveGame();
 }
 
+function listenToRoom() {
+  const line = roomListen[state.scene] || roomListen.lobby;
+  audio.listen(state.scene);
+  flashApparition(line.caption);
+  say(line.message);
+}
+
 function currentObjective() {
   if (!state.flags.started) return "Find out why the machines know your name.";
   if (!state.flags.washerOpened) return "Search the lobby for something wet enough to spend.";
@@ -1354,6 +1416,18 @@ function renderInventory() {
 function renderActions(scene) {
   renderObjective();
   actionsEl.innerHTML = "";
+  const listenButton = document.createElement("button");
+  listenButton.type = "button";
+  listenButton.className = "action-button";
+  listenButton.textContent = "listen";
+  listenButton.dataset.hotspot = "listen";
+  bindActivation(listenButton, () => {
+    listenToRoom();
+    renderInventory();
+    renderActions(scenes[state.scene]);
+  });
+  actionsEl.append(listenButton);
+
   scene.hotspots.forEach((hotspot) => {
     const button = document.createElement("button");
     button.type = "button";
