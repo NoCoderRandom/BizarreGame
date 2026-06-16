@@ -191,6 +191,49 @@ test("mobile layout keeps core controls usable", async ({ page }) => {
   expect(layout.scrollWidth).toBeLessThanOrEqual(layout.clientWidth);
 });
 
+test("preloaded artwork assets decode in the browser", async ({ page }) => {
+  await page.goto("./");
+
+  const assetHrefs = await page
+    .locator('link[rel="preload"][as="image"]')
+    .evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+
+  expect(assetHrefs).toEqual([
+    "assets/images/laundromat-lobby.webp",
+    "assets/images/dryer-shrine.webp",
+    "assets/images/rain-alley.webp",
+    "assets/images/lost-office.webp",
+    "assets/images/boiler-closet.webp",
+    "assets/images/claim-safe-closeup.webp",
+    "assets/images/tone-panel-closeup.webp",
+    "assets/images/name-basin-closeup.webp",
+    "assets/images/shift-clock-closeup.webp",
+  ]);
+
+  const decoded = await page.evaluate(async (hrefs) => {
+    const loadImage = (href) =>
+      new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => {
+          resolve({
+            href,
+            width: image.naturalWidth,
+            height: image.naturalHeight,
+          });
+        };
+        image.onerror = () => reject(new Error(`Could not decode ${href}`));
+        image.src = href;
+      });
+
+    return Promise.all(hrefs.map(loadImage));
+  }, assetHrefs);
+
+  decoded.forEach((asset) => {
+    expect(asset.width).toBeGreaterThan(400);
+    expect(asset.height).toBeGreaterThan(200);
+  });
+});
+
 test("player can find the payphone ending", async ({ page }) => {
   await page.goto("./");
 
