@@ -78,6 +78,7 @@ Planned production slice:
 - Locked ending stamps expose subtle route hints for replay.
 - Journal shows discovered endings and remaining ending-route hints.
 - Local ending records can be cleared from the start screen.
+- In-app credits modal documents generated artwork, procedural audio, and test stack.
 - Static GitHub Pages-ready deployment.
 
 ## Asset Strategy

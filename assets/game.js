@@ -15,6 +15,7 @@ const beginButton = document.querySelector("#beginButton");
 const continueButton = document.querySelector("#continueButton");
 const endingStampsEl = document.querySelector("#endingStamps");
 const quietButton = document.querySelector("#quietButton");
+const creditsButton = document.querySelector("#creditsButton");
 const muteButton = document.querySelector("#muteButton");
 const revealButton = document.querySelector("#revealButton");
 const journalButton = document.querySelector("#journalButton");
@@ -1888,6 +1889,29 @@ function openHint() {
   });
 }
 
+function openCredits() {
+  openModal({
+    title: "Credits",
+    body:
+      "The Laundromat Takes Your Name is an original static web game built for GitHub Pages.",
+    content: () => {
+      const list = document.createElement("ul");
+      list.className = "journal-list";
+      [
+        "Scene and close-up artwork: generated original WebP assets for this game.",
+        "Sound: procedural Web Audio synthesis, speech captions, and browser speech where available.",
+        "Code and tests: plain HTML, CSS, JavaScript, and Playwright route coverage.",
+      ].forEach((line) => {
+        const item = document.createElement("li");
+        item.textContent = line;
+        list.append(item);
+      });
+      return list;
+    },
+    actions: [],
+  });
+}
+
 function openModal({ title, body, content, actions, image, imageAlt = "" }) {
   lastModalFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   modalRoot.innerHTML = "";
@@ -2104,6 +2128,8 @@ bindActivation(quietButton, () => {
   audio.setMuted(state.flags.quiet);
   saveGame();
 });
+
+bindActivation(creditsButton, openCredits);
 
 bindActivation(muteButton, () => {
   state.flags.quiet = !audio.muted;
