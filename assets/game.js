@@ -115,6 +115,7 @@ const clueText = {
   sinkRinse: "An office notice says cloudy water can rinse static from claimed letters once.",
   endingFork: "The alley has more than one exit: rain, phone, and whatever static makes of you.",
   boilerPressure: "The boiler gauge says static is pressure looking for a mouth.",
+  clockEnding: "The shift clock only accepts a restored name. Punching in means staying on payroll.",
 };
 
 const staticApparitions = {
@@ -161,8 +162,13 @@ const endingMeta = {
     body:
       "The payphone rings once. You answer from the other end and say your name until it fits. The sheets above unfold into a road.",
   },
+  attendant: {
+    title: "You Clock In",
+    body:
+      "You slide your restored name into the shift clock. It stamps you with a time that has no numbers. By morning, the machines are quiet because they are listening to you.",
+  },
 };
-const endingOrder = ["clean", "frayed", "soft"];
+const endingOrder = ["clean", "frayed", "soft", "attendant"];
 
 const scenes = {
   lobby: {
@@ -304,6 +310,22 @@ const scenes = {
             return;
           }
           nudge("The back door is sealed with a clean, dry hunger.");
+        },
+      },
+      {
+        id: "shiftClock",
+        label: "shift clock",
+        x: 74,
+        y: 16,
+        w: 7,
+        h: 23,
+        click: () => {
+          rememberClue("clockEnding");
+          if (!state.flags.nameRestored) {
+            say("The shift clock has no hands, only a card slot shaped like a patient mouth. It refuses unnamed employees.");
+            return;
+          }
+          openClockEnding();
         },
       },
       {
@@ -710,7 +732,7 @@ const scenes = {
         h: 16,
         click: () => {
           rememberClue("endingFork");
-          say("The storm drain speaks through water teeth: rain keeps the named, phones call the soft, static follows the frayed.");
+          say("The storm drain speaks through water teeth: rain keeps the named, phones call the soft, static follows the frayed, and clocks keep employees.");
         },
       },
       {
@@ -975,6 +997,13 @@ class AudioEngine {
     this.noiseHit(0.72, 0.14, 0, 1700, "highpass");
     this.blip(84, 0.42, "sawtooth", 0.07, 0.08);
     this.blip(48, 0.75, "sine", 0.05, 0.2);
+  }
+
+  clockIn() {
+    this.thud(74, 0.2);
+    this.blip(217, 0.12, "square", 0.08, 0.12);
+    this.blip(108.5, 0.5, "sawtooth", 0.05, 0.22);
+    this.noiseHit(0.32, 0.08, 0.08, 820, "bandpass");
   }
 }
 
@@ -1590,6 +1619,31 @@ function openNamePuzzle() {
   });
 }
 
+function openClockEnding() {
+  openModal({
+    title: "Shift Clock",
+    body:
+      "The punch slot opens like it has been expecting your restored name. The card inside is blank except for tomorrow's date and your handwriting.",
+    content: () => {
+      const note = document.createElement("p");
+      note.className = "journal-meta";
+      note.textContent = "Clocking in means the laundromat learns your name the honest way.";
+      return note;
+    },
+    actions: [
+      {
+        label: "Punch Card",
+        primary: true,
+        click: () => {
+          audio.clockIn();
+          closeModal();
+          win("attendant");
+        },
+      },
+    ],
+  });
+}
+
 function currentHint() {
   if (!state.flags.started) return "Begin the shift and search the lobby from left to right.";
   if (!state.flags.washerOpened) return "The breathing washer has something loose in its rubber lip.";
@@ -1610,7 +1664,7 @@ function currentHint() {
   if (!state.flags.radioCaptured) return "Return to the lobby radio after solving the panel.";
   if (!state.flags.nameRestored) return "At the name basin, place the pieces in this order: Rust, Voice, Vowel Slip.";
   if (state.scene !== "alley") return "The front exit will now let you leave.";
-  return "The open rain gives the clean ending; the payphone gives a stranger one.";
+  return "The open rain gives the clean ending, the payphone gives a stranger one, and the shift clock gives a darker choice.";
 }
 
 function openJournal() {
