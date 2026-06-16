@@ -61,6 +61,7 @@ Planned production slice:
 - Static pressure affects visuals and procedural ambience.
 - Optional cloudy sink rinse gives players one static-pressure recovery.
 - Whisper/static apparition captions for atmosphere and sound-off readability.
+- Procedural phone/rain cues for ending choices.
 - Procedural ambient audio and one sound clue puzzle.
 - Three puzzle gates: claim safe, tone panel, and name basin.
 - Multiple endings based on route/static level.

@@ -584,6 +584,7 @@ const scenes = {
             nudge("The phone rings from inside your chest, then gives up.");
             return;
           }
+          audio.phoneRing();
           win("soft");
         },
       },
@@ -599,6 +600,7 @@ const scenes = {
             nudge("The rain passes through you where your name should be.");
             return;
           }
+          audio.rainBreak();
           win(state.static > 55 ? "frayed" : "clean");
         },
       },
@@ -842,6 +844,19 @@ class AudioEngine {
     this.success();
     this.blip(96, 1.4, "sine", 0.08, 0.25);
     this.blip(192, 1.2, "triangle", 0.05, 0.45);
+  }
+
+  phoneRing() {
+    this.blip(880, 0.18, "sine", 0.11);
+    this.blip(1320, 0.18, "sine", 0.08, 0.12);
+    this.blip(880, 0.22, "sine", 0.1, 0.42);
+    this.blip(1320, 0.2, "sine", 0.07, 0.54);
+  }
+
+  rainBreak() {
+    this.thud(58, 0.19);
+    this.blip(420, 0.45, "triangle", 0.06, 0.08);
+    this.blip(122, 0.9, "sawtooth", 0.045, 0.16);
   }
 }
 
