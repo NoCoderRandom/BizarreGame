@@ -4,6 +4,7 @@ const stage = document.querySelector("#stage");
 const canvas = document.querySelector("#fxCanvas");
 const ctx = canvas.getContext("2d", { alpha: true });
 const roomTitle = document.querySelector("#roomTitle");
+const objectiveEl = document.querySelector("#objective");
 const inventoryEl = document.querySelector("#inventory");
 const messageEl = document.querySelector("#message");
 const staticFill = document.querySelector("#staticFill");
@@ -18,9 +19,12 @@ const actionsEl = document.querySelector("#actions");
 const itemMeta = {
   wetCoin: { label: "Wet Coin", color: "#b5d7d2" },
   blackSoap: { label: "Black Soap", color: "#1b1d1f" },
+  claimTicket: { label: "Claim Ticket", color: "#d8be82" },
+  brassKey: { label: "Brass Key", color: "#d6a74d" },
   soot: { label: "Soot", color: "#2a2d2c" },
   rust: { label: "Rust", color: "#bd613b" },
   voice: { label: "Voice", color: "#4cc7ce" },
+  vowelSlip: { label: "Vowel Slip", color: "#e7e2c2" },
   nameTag: { label: "Name Tag", color: "#f1d283" },
 };
 
@@ -34,6 +38,9 @@ const state = {
     washerOpened: false,
     vendingUsed: false,
     backUnlocked: false,
+    officeUnlocked: false,
+    ledgerRead: false,
+    safeOpen: false,
     radioHeard: false,
     radioCaptured: false,
     shrineAwake: false,
@@ -84,14 +91,17 @@ const scenes = {
         h: 26,
         click: () => {
           if (state.flags.vendingUsed) {
-            say("The soap machine has gone dark. Its last bottle is in your pocket.");
+            say("The soap machine has gone dark. Its last bottle and the ticket it coughed up are already in your pocket.");
             return;
           }
           if (consumeSelected("wetCoin")) {
             state.flags.vendingUsed = true;
             addItem("blackSoap");
+            state.items.add("claimTicket");
+            state.selectedItem = "blackSoap";
+            renderInventory();
             audio.pickup();
-            say("The machine accepts the wet coin and drops a bottle of black soap. It is heavier than it looks.");
+            say("The machine accepts the wet coin and drops black soap plus a numbered claim ticket. The ticket is damp with somebody else's thumbprint.");
             return;
           }
           nudge("The slot clicks its tiny teeth. It wants money with water still inside it.");
@@ -134,6 +144,22 @@ const scenes = {
         },
       },
       {
+        id: "office",
+        label: "lost office",
+        x: 22,
+        y: 28,
+        w: 17,
+        h: 25,
+        click: () => {
+          if (state.flags.officeUnlocked || state.items.has("claimTicket") || state.items.has("vowelSlip")) {
+            state.flags.officeUnlocked = true;
+            go("office");
+            return;
+          }
+          nudge("The service window is locked. A brass slot under it says nothing, but it clearly wants a claim ticket.");
+        },
+      },
+      {
         id: "backdoor",
         label: "red back door",
         x: 47,
@@ -168,6 +194,112 @@ const scenes = {
             return;
           }
           nudge("The glass reflects you without a name. The street will not accept that.");
+        },
+      },
+    ],
+  },
+  office: {
+    title: "Lost Office",
+    image: "assets/images/lost-office.png",
+    ambience: "office",
+    entry:
+      "The lost-and-found office catalogs things people swear they never owned.",
+    hotspots: [
+      {
+        id: "lobbydoor",
+        label: "lobby window",
+        x: 0,
+        y: 12,
+        w: 13,
+        h: 70,
+        click: () => go("lobby"),
+      },
+      {
+        id: "ledger",
+        label: "claim ledger",
+        x: 34,
+        y: 65,
+        w: 25,
+        h: 14,
+        click: () => {
+          state.flags.ledgerRead = true;
+          lowerStatic(4);
+          say("Your name appears in the ledger with every vowel filed away. The clerk's note repeats one time: 2:17.");
+        },
+      },
+      {
+        id: "timeClock",
+        label: "time clock",
+        x: 9,
+        y: 45,
+        w: 10,
+        h: 18,
+        click: () => {
+          audio.toneAnswer();
+          say("The time clock punches an invisible card: 2:17 AM. Low, high, middle follows from inside the gears.");
+        },
+      },
+      {
+        id: "keyRack",
+        label: "key rack",
+        x: 4,
+        y: 18,
+        w: 17,
+        h: 25,
+        click: () => {
+          if (state.items.has("brassKey") || state.flags.safeOpen) {
+            say("The remaining keys are too flat to turn anything real.");
+            return;
+          }
+          addItem("brassKey");
+          audio.pickup();
+          say("One brass key is warm enough to have a pulse. It is tagged with a blank claim number.");
+        },
+      },
+      {
+        id: "mirror",
+        label: "cracked mirror",
+        x: 41,
+        y: 15,
+        w: 19,
+        h: 34,
+        click: () => {
+          audio.whisper("two one seven");
+          say("In the mirror, your reflection has no mouth. It taps the glass twice, once, then seven times.");
+        },
+      },
+      {
+        id: "safe",
+        label: "claim safe",
+        x: 70,
+        y: 38,
+        w: 16,
+        h: 31,
+        click: () => {
+          if (state.flags.safeOpen) {
+            say("The safe hangs open. A dry rectangle in the dust marks where the vowel slip waited.");
+            return;
+          }
+          if (state.selectedItem === "brassKey" && state.items.has("brassKey")) {
+            openSafePuzzle();
+            return;
+          }
+          nudge("The safe's keyhole is clean from use. It wants the warm brass key from the rack.");
+        },
+      },
+      {
+        id: "sink",
+        label: "cloudy sink",
+        x: 86,
+        y: 64,
+        w: 13,
+        h: 24,
+        click: () => {
+          if (state.items.has("vowelSlip")) {
+            say("The sink water reflects your name with its vowels back in place, then pretends it did not.");
+            return;
+          }
+          nudge("The cloudy sink ripples into four empty oval shapes. Something is missing from the word that is you.");
         },
       },
     ],
@@ -282,11 +414,11 @@ const scenes = {
             say("The basin is dry. It has already failed to keep you.");
             return;
           }
-          if (state.items.has("nameTag") && state.items.has("rust") && state.items.has("voice")) {
+          if (state.items.has("nameTag") && state.items.has("rust") && state.items.has("voice") && state.items.has("vowelSlip")) {
             openNamePuzzle();
             return;
           }
-          nudge("The basin wants a tag, rust, and a voice. It is not shy about wanting.");
+          nudge("The basin wants a tag, rust, a voice, and the missing vowels. It is not shy about wanting.");
         },
       },
     ],
@@ -424,6 +556,7 @@ class AudioEngine {
     const now = this.ctx.currentTime;
     const settings = {
       lobby: { noise: 0.035, freq: 620, a: 53, b: 83 },
+      office: { noise: 0.04, freq: 740, a: 59, b: 118 },
       shrine: { noise: 0.058, freq: 460, a: 38, b: 71 },
       alley: { noise: 0.044, freq: 920, a: 47, b: 94 },
     }[scene];
@@ -596,8 +729,28 @@ function lowerStatic(amount) {
   staticFill.style.width = `${state.static}%`;
 }
 
+function currentObjective() {
+  if (!state.flags.started) return "Find out why the machines know your name.";
+  if (!state.flags.washerOpened) return "Search the lobby for something wet enough to spend.";
+  if (!state.flags.vendingUsed) return "Use the wet coin on the soap machine.";
+  if (!state.flags.safeOpen) return "Use the claim ticket to find the lost office, then recover your missing vowels.";
+  if (!state.flags.backUnlocked) return "Use the black soap on the red back door.";
+  if (!state.flags.dryerFed) return "Bring a dark stain to the central dryer.";
+  if (!state.items.has("nameTag")) return "Take the damp name tag from the hanging tags.";
+  if (!state.flags.toneSolved) return "Solve the three-note panel: low, high, middle.";
+  if (!state.flags.radioCaptured) return "Return to the lobby radio and catch your voice.";
+  if (!state.flags.nameRestored) return "Restore the name with tag, rust, voice, and vowels.";
+  if (state.scene !== "alley") return "Leave through the front exit.";
+  return "Choose how to walk into the rain.";
+}
+
+function renderObjective() {
+  objectiveEl.textContent = currentObjective();
+}
+
 function renderInventory() {
   inventoryEl.innerHTML = "";
+  renderObjective();
   if (!state.items.size) {
     const empty = document.createElement("p");
     empty.className = "message";
@@ -616,7 +769,7 @@ function renderInventory() {
     button.setAttribute("aria-pressed", String(state.selectedItem === item));
     button.classList.toggle("selected", state.selectedItem === item);
     bindActivation(button, () => {
-      state.selectedItem = state.selectedItem === item ? null : item;
+      state.selectedItem = item;
       audio.click();
       renderInventory();
     });
@@ -625,6 +778,7 @@ function renderInventory() {
 }
 
 function renderActions(scene) {
+  renderObjective();
   actionsEl.innerHTML = "";
   scene.hotspots.forEach((hotspot) => {
     const button = document.createElement("button");
@@ -645,6 +799,7 @@ function renderActions(scene) {
 function renderScene() {
   const scene = scenes[state.scene];
   roomTitle.textContent = scene.title;
+  renderObjective();
   sceneImage.style.opacity = "0";
   window.setTimeout(() => {
     sceneImage.src = scene.image;
@@ -681,6 +836,61 @@ function go(scene, delay = 140) {
     state.scene = scene;
     renderScene();
   }, delay);
+}
+
+function openSafePuzzle() {
+  const digits = ["0", "0", "0"];
+
+  openModal({
+    title: "Claim Safe",
+    body:
+      "The brass key turns once. Three tumblers wait for the time the laundromat keeps repeating.",
+    content: () => {
+      const grid = document.createElement("div");
+      grid.className = "dial-grid";
+      digits.forEach((digit, index) => {
+        const dial = document.createElement("button");
+        dial.type = "button";
+        dial.className = "dial";
+        dial.innerHTML = `<span>digit ${index + 1}</span>${digit}`;
+        bindActivation(dial, () => {
+          digits[index] = String((Number(digits[index]) + 1) % 10);
+          dial.innerHTML = `<span>digit ${index + 1}</span>${digits[index]}`;
+          audio.blip(180 + Number(digits[index]) * 34, 0.12, "triangle", 0.1);
+        });
+        grid.append(dial);
+      });
+      return grid;
+    },
+    actions: [
+      {
+        label: "Recall Time",
+        click: () => {
+          audio.whisper("two one seven");
+          say("The ledger, the mirror, and the time clock all keep returning to 2:17.");
+        },
+      },
+      {
+        label: "Open Safe",
+        primary: true,
+        click: () => {
+          if (digits.join("") === "217") {
+            state.flags.safeOpen = true;
+            removeItem("brassKey");
+            addItem("vowelSlip");
+            lowerStatic(10);
+            audio.success();
+            closeModal();
+            say("The safe opens on a breath of dry paper. Inside is a vowel slip with the missing middle of your name.");
+          } else {
+            pulseStatic(10);
+            audio.error();
+            say("The safe rejects the number. Somewhere in the office, a claim ticket tears itself in half.");
+          }
+        },
+      },
+    ],
+  });
 }
 
 function openTonePuzzle() {
@@ -739,13 +949,13 @@ function openTonePuzzle() {
 
 function openNamePuzzle() {
   const chosen = [];
-  const order = ["soot", "rust", "voice"];
-  const choices = ["rust", "voice", "soot"];
+  const order = ["rust", "voice", "vowelSlip"];
+  const choices = ["voice", "vowelSlip", "rust"];
 
   openModal({
     title: "Name Basin",
     body:
-      "The basin has three drains. Your tag lies between them, waiting for stains in the order a machine becomes a mouth.",
+      "The basin has three drains. Your tag lies between them, waiting for weight, breath, and letters.",
     content: () => {
       const grid = document.createElement("div");
       grid.className = "stain-grid";
@@ -774,13 +984,13 @@ function openNamePuzzle() {
           if (chosen.join("-") === order.join("-")) {
             state.flags.nameRestored = true;
             removeItem("nameTag");
-            removeItem("soot");
             removeItem("rust");
             removeItem("voice");
+            removeItem("vowelSlip");
             lowerStatic(24);
             audio.whisper("there you are");
             closeModal();
-            say("Soot gives the name a shadow. Rust gives it weight. Voice gives it teeth. The front exit unlocks.");
+            say("Rust gives the name weight. Voice gives it teeth. The vowel slip gives it a throat. The front exit unlocks.");
             window.setTimeout(() => go("lobby"), 900);
           } else {
             pulseStatic(18);
@@ -894,6 +1104,7 @@ function animate(time = 0) {
 
   const sceneColor = {
     lobby: "147,217,178",
+    office: "214,167,77",
     shrine: "242,94,55",
     alley: "76,199,206",
   }[state.scene];
@@ -1015,14 +1226,14 @@ if (params.has("debug") && ["localhost", "127.0.0.1", ""].includes(window.locati
       return this.snapshot();
     },
     solveName() {
-      if (!(state.items.has("nameTag") && state.items.has("soot") && state.items.has("rust") && state.items.has("voice"))) {
+      if (!(state.items.has("nameTag") && state.items.has("rust") && state.items.has("voice") && state.items.has("vowelSlip"))) {
         throw new Error("Missing final basin items");
       }
       state.flags.nameRestored = true;
       removeItem("nameTag");
-      removeItem("soot");
       removeItem("rust");
       removeItem("voice");
+      removeItem("vowelSlip");
       lowerStatic(24);
       say("Debug: the name is restored. The front exit unlocks.");
       return this.snapshot();
@@ -1060,6 +1271,17 @@ if (params.has("selftest") && ["localhost", "127.0.0.1", ""].includes(window.loc
       trigger("washer");
       select("wetCoin");
       trigger("vending");
+      trigger("office");
+      await wait(260);
+      trigger("keyRack");
+      select("brassKey");
+      trigger("safe");
+      state.flags.safeOpen = true;
+      removeItem("brassKey");
+      addItem("vowelSlip");
+      closeModal();
+      trigger("lobbydoor");
+      await wait(260);
       select("blackSoap");
       trigger("backdoor");
       await wait(850);
@@ -1078,9 +1300,9 @@ if (params.has("selftest") && ["localhost", "127.0.0.1", ""].includes(window.loc
       if (modalRoot.hidden) throw new Error("Name basin modal did not open");
       state.flags.nameRestored = true;
       removeItem("nameTag");
-      removeItem("soot");
       removeItem("rust");
       removeItem("voice");
+      removeItem("vowelSlip");
       closeModal();
       go("lobby", 20);
       await wait(120);

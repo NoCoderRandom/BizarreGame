@@ -27,8 +27,9 @@ Core loop:
 2. Click readable hotspots.
 3. Collect strange items/stains.
 4. Use the selected item on the right object.
-5. Solve one sound-memory puzzle and one final ordering puzzle.
-6. Escape through the rain alley with a slight ending variation.
+5. Enter the lost-and-found office and recover the missing vowels from a claim safe.
+6. Solve one sound-memory puzzle and one final ordering puzzle.
+7. Escape through the rain alley with a slight ending variation.
 
 ## 5-10 Hour Scope
 
@@ -46,11 +47,13 @@ Planned production slice:
 ## Feature Checklist
 
 - Three original 16:9 scene backgrounds.
+- Fourth original 16:9 lost-and-found office background.
 - Large, accessible hotspot buttons.
 - Inventory with selectable strange items.
 - Optional hotspot reveal mode.
+- Objective text that updates with the current puzzle goal.
 - Procedural ambient audio and one sound clue puzzle.
-- Two puzzle gates: tone panel and name basin.
+- Three puzzle gates: claim safe, tone panel, and name basin.
 - Multiple endings based on route/static level.
 - Static GitHub Pages-ready deployment.
 

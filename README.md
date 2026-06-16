@@ -33,12 +33,22 @@ https://<your-github-username>.github.io/<repo-name>/
 
 Click objects in the scene, select pocket items, then click objects that might react to the selected item. The circle button in the top-right reveals touch points.
 
+The visible scene buttons below the image are the safest way to play. The image hotspots work too.
+
 ## Test
 
 ```powershell
 npm install
 npx playwright install chromium
 npm test
+```
+
+To verify the deployed GitHub Pages build:
+
+```powershell
+$env:BASE_URL="https://nocoderrandom.github.io/BizarreGame/"
+npm test
+Remove-Item Env:\BASE_URL
 ```
 
 ## Notes

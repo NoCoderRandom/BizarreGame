@@ -7,6 +7,7 @@ The three scene backgrounds in `assets/images/` were generated for this project 
 - `laundromat-lobby.png`
 - `dryer-shrine.png`
 - `rain-alley.png`
+- `lost-office.png`
 
 The prompts requested original non-graphic psychological horror game backgrounds with no logos, no readable text, no watermark, and no third-party characters.
 
