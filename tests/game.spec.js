@@ -19,12 +19,20 @@ test("player can start and finish the main route", async ({ page }) => {
   await expect(page.locator(".modal")).toContainText("breathing washer");
   await page.locator(".modal").getByRole("button", { name: "Step Back" }).click();
 
+  for (let i = 0; i < 4; i += 1) {
+    await action(page, "front exit").click();
+  }
+  await expect(page.locator("body")).toHaveClass(/static-rising/);
+  await expect(page.locator(".meter")).toHaveAttribute("aria-label", "Static pressure 40 percent");
+
   await action(page, "lost basket").click();
   await expect(item(page, "Soot")).toBeVisible();
 
   await action(page, "breathing washer").click();
   await expect(item(page, "Wet Coin")).toBeVisible();
 
+  await item(page, "Wet Coin").click();
+  await expect(page.locator("#message")).toContainText("Wet Coin selected");
   await action(page, "soap machine").click();
   await expect(item(page, "Black Soap")).toBeVisible();
   await expect(item(page, "Claim Ticket")).toBeVisible();
@@ -36,6 +44,8 @@ test("player can start and finish the main route", async ({ page }) => {
   await page.getByRole("button", { name: "Open journal" }).click();
   await expect(page.locator(".modal")).toContainText("2:17");
   await expect(page.locator(".modal")).toContainText("vowel");
+  await expect(page.locator(".modal")).toContainText("Pockets");
+  await expect(page.locator(".modal")).toContainText("Black Soap");
   await page.locator(".modal").getByRole("button", { name: "Step Back" }).click();
   await action(page, "key rack").click();
   await expect(item(page, "Brass Key")).toBeVisible();

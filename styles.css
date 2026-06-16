@@ -201,6 +201,10 @@ a {
     0 0 0 1px rgba(0, 0, 0, 0.8) inset;
 }
 
+.stage.is-jolting {
+  animation: stage-jolt 240ms steps(2, end);
+}
+
 .scene-image,
 .fx-canvas,
 .hotspot-layer,
@@ -232,6 +236,26 @@ a {
     linear-gradient(rgba(255, 255, 255, 0.06) 50%, rgba(0, 0, 0, 0.15) 50%),
     linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 180, 0.025), rgba(0, 0, 255, 0.04));
   background-size: 100% 4px, 7px 100%;
+}
+
+body.static-rising .scene-image {
+  filter: brightness(1.04) contrast(1.17) saturate(0.96);
+}
+
+body.static-rising .scanline {
+  opacity: 0.34;
+}
+
+body.static-critical .stage {
+  border-color: rgba(255, 121, 86, 0.46);
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.74),
+    0 0 42px rgba(255, 111, 84, 0.18),
+    0 0 0 1px rgba(0, 0, 0, 0.8) inset;
+}
+
+body.static-critical .message-panel {
+  border-color: rgba(255, 121, 86, 0.42);
 }
 
 .hotspot-layer {
@@ -498,6 +522,14 @@ a {
   color: #f4dc9b;
 }
 
+.journal-subhead {
+  margin: 2px 0 -4px;
+  color: var(--accent);
+  font-size: 0.78rem;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
 .journal-list {
   margin: 0;
   padding-left: 20px;
@@ -505,6 +537,25 @@ a {
   gap: 8px;
   color: #f3ead7;
   line-height: 1.45;
+}
+
+@keyframes stage-jolt {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  25% {
+    transform: translate(3px, -1px);
+  }
+
+  50% {
+    transform: translate(-2px, 2px);
+  }
+
+  75% {
+    transform: translate(1px, 1px);
+  }
 }
 
 .dial-grid,

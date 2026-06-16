@@ -50,10 +50,12 @@ Planned production slice:
 - Fourth original 16:9 lost-and-found office background.
 - Large, accessible hotspot buttons.
 - Inventory with selectable strange items.
+- Inventory inspection text that doubles as diegetic hinting.
 - Optional hotspot reveal mode.
 - Objective text that updates with the current puzzle goal.
 - Contextual hint button and clue journal for puzzle recall.
 - In-browser checkpoint saving with a continue option.
+- Static pressure affects visuals and procedural ambience.
 - Procedural ambient audio and one sound clue puzzle.
 - Three puzzle gates: claim safe, tone panel, and name basin.
 - Multiple endings based on route/static level.

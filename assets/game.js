@@ -7,6 +7,7 @@ const roomTitle = document.querySelector("#roomTitle");
 const objectiveEl = document.querySelector("#objective");
 const inventoryEl = document.querySelector("#inventory");
 const messageEl = document.querySelector("#message");
+const meterEl = document.querySelector(".meter");
 const staticFill = document.querySelector("#staticFill");
 const startScreen = document.querySelector("#startScreen");
 const beginButton = document.querySelector("#beginButton");
@@ -41,15 +42,51 @@ const defaultFlags = {
 };
 
 const itemMeta = {
-  wetCoin: { label: "Wet Coin", color: "#b5d7d2" },
-  blackSoap: { label: "Black Soap", color: "#1b1d1f" },
-  claimTicket: { label: "Claim Ticket", color: "#d8be82" },
-  brassKey: { label: "Brass Key", color: "#d6a74d" },
-  soot: { label: "Soot", color: "#2a2d2c" },
-  rust: { label: "Rust", color: "#bd613b" },
-  voice: { label: "Voice", color: "#4cc7ce" },
-  vowelSlip: { label: "Vowel Slip", color: "#e7e2c2" },
-  nameTag: { label: "Name Tag", color: "#f1d283" },
+  wetCoin: {
+    label: "Wet Coin",
+    color: "#b5d7d2",
+    inspect: "It leaves a perfect cold circle on your thumb. The soap machine will probably accept it.",
+  },
+  blackSoap: {
+    label: "Black Soap",
+    color: "#1b1d1f",
+    inspect: "It smells like burnt lavender and unlocked doors. The red back door feels aware of it.",
+  },
+  claimTicket: {
+    label: "Claim Ticket",
+    color: "#d8be82",
+    inspect: "The number is smudged, but the service window recognizes the paper before you do.",
+  },
+  brassKey: {
+    label: "Brass Key",
+    color: "#d6a74d",
+    inspect: "The bow pulses once per second. Its teeth are cut for the claim safe.",
+  },
+  soot: {
+    label: "Soot",
+    color: "#2a2d2c",
+    inspect: "A soft black stain that wants to become a shadow. The central dryer is hungry for it.",
+  },
+  rust: {
+    label: "Rust",
+    color: "#bd613b",
+    inspect: "It gives weight to things that are too clean. The name basin asked for weight.",
+  },
+  voice: {
+    label: "Voice",
+    color: "#4cc7ce",
+    inspect: "It vibrates against your palm instead of your throat. The name basin asked for breath.",
+  },
+  vowelSlip: {
+    label: "Vowel Slip",
+    color: "#e7e2c2",
+    inspect: "Thin paper with the missing open sounds of your name. The name basin asked for letters.",
+  },
+  nameTag: {
+    label: "Name Tag",
+    color: "#f1d283",
+    inspect: "The letters slide around, embarrassed to be seen without their missing pieces.",
+  },
 };
 
 const state = {
@@ -520,6 +557,7 @@ class AudioEngine {
     this.filter = null;
     this.delay = null;
     this.scene = "lobby";
+    this.staticLevel = 8;
     this.muted = false;
   }
 
@@ -573,20 +611,34 @@ class AudioEngine {
     quietButton.setAttribute("aria-pressed", String(muted));
   }
 
-  setScene(scene) {
-    this.scene = scene;
-    if (!this.ctx) return;
-    const now = this.ctx.currentTime;
-    const settings = {
+  sceneSettings() {
+    return {
       lobby: { noise: 0.035, freq: 620, a: 53, b: 83 },
       office: { noise: 0.04, freq: 740, a: 59, b: 118 },
       shrine: { noise: 0.058, freq: 460, a: 38, b: 71 },
       alley: { noise: 0.044, freq: 920, a: 47, b: 94 },
-    }[scene];
-    this.noiseGain.gain.setTargetAtTime(settings.noise, now, 0.5);
-    this.filter.frequency.setTargetAtTime(settings.freq, now, 0.8);
+    }[this.scene];
+  }
+
+  applyMix(speed = 0.5) {
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+    const settings = this.sceneSettings();
+    const pressure = Math.min(1, this.staticLevel / 100);
+    this.noiseGain.gain.setTargetAtTime(settings.noise + pressure * 0.06, now, speed);
+    this.filter.frequency.setTargetAtTime(settings.freq - pressure * 230, now, 0.8);
     this.droneA.frequency.setTargetAtTime(settings.a, now, 1.1);
     this.droneB.frequency.setTargetAtTime(settings.b, now, 1.1);
+  }
+
+  setScene(scene) {
+    this.scene = scene;
+    this.applyMix(0.5);
+  }
+
+  setStaticLevel(level) {
+    this.staticLevel = level;
+    this.applyMix(0.18);
   }
 
   noiseBuffer(seconds) {
@@ -820,7 +872,7 @@ function loadGame({ audioGesture = true } = {}) {
   renderScene();
   renderInventory();
   say(restoredMessage);
-  staticFill.style.width = `${state.static}%`;
+  renderStatic();
   if (audioGesture) audio.whisper("continue");
   return true;
 }
@@ -830,6 +882,26 @@ function rememberClue(clue) {
   const isNew = !state.clues.has(clue);
   state.clues.add(clue);
   if (isNew) saveGame();
+}
+
+function describeItem(item) {
+  const meta = itemMeta[item];
+  return `${meta.label} selected. ${meta.inspect}`;
+}
+
+function renderStatic() {
+  staticFill.style.width = `${state.static}%`;
+  meterEl.setAttribute("aria-label", `Static pressure ${Math.round(state.static)} percent`);
+  document.body.classList.toggle("static-rising", state.static >= 35);
+  document.body.classList.toggle("static-critical", state.static >= 65);
+  audio.setStaticLevel(state.static);
+}
+
+function joltStage() {
+  stage.classList.remove("is-jolting");
+  void stage.offsetWidth;
+  stage.classList.add("is-jolting");
+  window.setTimeout(() => stage.classList.remove("is-jolting"), 260);
 }
 
 function addItem(item) {
@@ -866,13 +938,14 @@ function nudge(message) {
 
 function pulseStatic(amount) {
   state.static = Math.max(0, Math.min(100, state.static + amount));
-  staticFill.style.width = `${state.static}%`;
+  renderStatic();
+  if (amount >= 8) joltStage();
   saveGame();
 }
 
 function lowerStatic(amount) {
   state.static = Math.max(0, Math.min(100, state.static - amount));
-  staticFill.style.width = `${state.static}%`;
+  renderStatic();
   saveGame();
 }
 
@@ -912,12 +985,14 @@ function renderInventory() {
     button.type = "button";
     button.className = "item-button";
     button.textContent = meta.label;
+    button.title = meta.inspect;
     button.style.setProperty("--item-color", meta.color);
     button.setAttribute("aria-pressed", String(state.selectedItem === item));
     button.classList.toggle("selected", state.selectedItem === item);
     bindActivation(button, () => {
       state.selectedItem = item;
       audio.click();
+      say(describeItem(item));
       saveGame();
       renderInventory();
     });
@@ -1198,17 +1273,34 @@ function openJournal() {
         empty.className = "journal-empty";
         empty.textContent = "No clues logged yet. Touch odd things and the room will start telling on itself.";
         panel.append(empty);
-        return panel;
+      } else {
+        const list = document.createElement("ul");
+        list.className = "journal-list";
+        entries.forEach((entry) => {
+          const item = document.createElement("li");
+          item.textContent = entry;
+          list.append(item);
+        });
+        panel.append(list);
       }
 
-      const list = document.createElement("ul");
-      list.className = "journal-list";
-      entries.forEach((entry) => {
-        const item = document.createElement("li");
-        item.textContent = entry;
-        list.append(item);
-      });
-      panel.append(list);
+      if (state.items.size) {
+        const pocketTitle = document.createElement("h4");
+        pocketTitle.className = "journal-subhead";
+        pocketTitle.textContent = "Pockets";
+        panel.append(pocketTitle);
+
+        const pocketList = document.createElement("ul");
+        pocketList.className = "journal-list";
+        [...state.items].forEach((item) => {
+          const meta = itemMeta[item];
+          const entry = document.createElement("li");
+          entry.textContent = `${meta.label}: ${meta.inspect}`;
+          pocketList.append(entry);
+        });
+        panel.append(pocketList);
+      }
+
       return panel;
     },
     actions: [],
@@ -1371,6 +1463,7 @@ function startGame({ audioGesture = true } = {}) {
   }
   audio.setMuted(state.flags.quiet);
   startScreen.classList.add("is-hidden");
+  renderStatic();
   renderScene();
   if (audioGesture) audio.whisper("wash gently");
 }
@@ -1430,7 +1523,7 @@ window.addEventListener("keydown", (event) => {
 
 resizeCanvas();
 renderInventory();
-staticFill.style.width = `${state.static}%`;
+renderStatic();
 updateContinueButton();
 requestAnimationFrame(animate);
 

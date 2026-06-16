@@ -31,7 +31,7 @@ https://<your-github-username>.github.io/<repo-name>/
 
 ## Controls
 
-Click objects in the scene, select pocket items, then click objects that might react to the selected item. The circle button in the top-right reveals touch points, the square opens your clue journal, and the question mark gives a contextual hint.
+Click objects in the scene, select pocket items, then click objects that might react to the selected item. Selecting a pocket item also inspects it in the message panel. The circle button in the top-right reveals touch points, the square opens your clue journal, and the question mark gives a contextual hint.
 
 The visible scene buttons below the image are the safest way to play. The image hotspots work too.
 
