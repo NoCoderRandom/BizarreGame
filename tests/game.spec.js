@@ -145,6 +145,8 @@ test("player can start and finish the main route", async ({ page }) => {
   await expect(page.locator("#endingStamps")).toContainText("Endings found 1/3");
   await expect(page.locator("#endingStamps")).toContainText("You Leave Named");
   await expect(page.locator("#endingStamps")).toContainText("Unknown ending");
+  await page.getByRole("button", { name: "Burn Records" }).click();
+  await expect(page.locator("#endingStamps")).toBeHidden();
 });
 
 test("mobile layout keeps core controls usable", async ({ page }) => {

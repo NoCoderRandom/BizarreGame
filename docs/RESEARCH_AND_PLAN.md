@@ -64,6 +64,7 @@ Planned production slice:
 - Three puzzle gates: claim safe, tone panel, and name basin.
 - Multiple endings based on route/static level.
 - Persistent ending stamps with 1/3 replay progress tracking.
+- Local ending records can be cleared from the start screen.
 - Static GitHub Pages-ready deployment.
 
 ## Asset Strategy

@@ -506,6 +506,23 @@ body.static-critical .message-panel {
   font-style: italic;
 }
 
+.ending-clear {
+  width: fit-content;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.42);
+  color: #cfc6b8;
+  padding: 5px 8px;
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.ending-clear:hover {
+  color: var(--accent);
+  border-color: rgba(241, 210, 131, 0.48);
+}
+
 .primary-action,
 .ghost-action,
 .modal-button {

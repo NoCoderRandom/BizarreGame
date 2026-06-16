@@ -945,6 +945,15 @@ function recordEnding(kind) {
   return endings.size;
 }
 
+function clearEndings() {
+  try {
+    window.localStorage?.removeItem(ENDINGS_KEY);
+  } catch {
+    // Ending stamps are a convenience; clearing can fail without blocking play.
+  }
+  renderEndingStamps();
+}
+
 function renderEndingStamps() {
   const endings = new Set(readEndings());
   endingStampsEl.innerHTML = "";
@@ -966,6 +975,16 @@ function renderEndingStamps() {
     list.append(stamp);
   });
   endingStampsEl.append(list);
+
+  const clearButton = document.createElement("button");
+  clearButton.type = "button";
+  clearButton.className = "ending-clear";
+  clearButton.textContent = "Burn Records";
+  bindActivation(clearButton, () => {
+    audio.click();
+    clearEndings();
+  });
+  endingStampsEl.append(clearButton);
 }
 
 function hydrateState(save) {
