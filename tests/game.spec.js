@@ -271,6 +271,23 @@ test("start screen credits describe assets and audio", async ({ page }) => {
   await expect(page.locator("#startScreen")).not.toHaveClass(/is-hidden/);
 });
 
+test("start screen celebrates a complete ending collection", async ({ page }) => {
+  await page.goto("./");
+  await page.evaluate(() => {
+    localStorage.setItem(
+      "laundromat-endings-v1",
+      JSON.stringify(["clean", "frayed", "soft", "attendant"]),
+    );
+  });
+  await page.reload();
+
+  await expect(page.locator("#endingStamps")).toContainText("Endings found 4/4 - all cycles recorded");
+  await expect(page.locator("#endingStamps")).toContainText("You Leave Named");
+  await expect(page.locator("#endingStamps")).toContainText("You Leave Frayed");
+  await expect(page.locator("#endingStamps")).toContainText("You Call Yourself");
+  await expect(page.locator("#endingStamps")).toContainText("You Clock In");
+});
+
 test("preloaded artwork assets decode in the browser", async ({ page }) => {
   await page.goto("./");
 

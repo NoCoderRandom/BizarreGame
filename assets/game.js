@@ -1210,7 +1210,9 @@ function renderEndingStamps() {
 
   const label = document.createElement("p");
   label.className = "ending-stamps-label";
-  label.textContent = `Endings found ${endings.size}/${endingOrder.length}`;
+  label.textContent = endings.size === endingOrder.length
+    ? `Endings found ${endings.size}/${endingOrder.length} - all cycles recorded`
+    : `Endings found ${endings.size}/${endingOrder.length}`;
   endingStampsEl.append(label);
 
   const list = document.createElement("div");
