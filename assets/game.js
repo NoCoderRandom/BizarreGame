@@ -1920,9 +1920,13 @@ function openModal({ title, body, content, actions, image, imageAlt = "" }) {
   modalRoot.hidden = false;
 
   const modal = document.createElement("article");
+  const titleId = `modal-title-${Date.now().toString(36)}`;
   modal.className = "modal";
+  modal.setAttribute("role", "dialog");
+  modal.setAttribute("aria-modal", "true");
+  modal.setAttribute("aria-labelledby", titleId);
   modal.innerHTML = `
-    <header><h3>${title}</h3></header>
+    <header><h3 id="${titleId}">${title}</h3></header>
     <section><p>${body}</p></section>
     <footer></footer>
   `;

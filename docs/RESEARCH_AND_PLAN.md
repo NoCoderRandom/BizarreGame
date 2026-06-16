@@ -56,7 +56,7 @@ Planned production slice:
 - Subtle pointer parallax on scene art with reduced-motion support.
 - Scene-specific procedural canvas overlays for rain and boiler steam.
 - Keyboard shortcuts for scene actions plus hint, journal, reveal, and mute controls.
-- Modal focus management and tab wrapping for keyboard players.
+- Accessible modal dialog semantics, focus management, and tab wrapping for keyboard players.
 - Inventory with selectable strange items.
 - Inventory inspection text that doubles as diegetic hinting.
 - Optional hotspot reveal mode.

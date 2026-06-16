@@ -282,6 +282,9 @@ test("start screen credits describe assets and audio", async ({ page }) => {
   await page.goto("./");
 
   await page.getByRole("button", { name: "Credits" }).click();
+  await expect(page.locator(".modal")).toHaveAttribute("role", "dialog");
+  await expect(page.locator(".modal")).toHaveAttribute("aria-modal", "true");
+  await expect(page.locator(".modal")).toHaveAttribute("aria-labelledby", /modal-title-/);
   await expect(page.locator(".modal")).toContainText("generated original WebP assets");
   await expect(page.locator(".modal")).toContainText("procedural Web Audio");
   const stepBack = page.locator(".modal").getByRole("button", { name: "Step Back" });
