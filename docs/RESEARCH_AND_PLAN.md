@@ -68,6 +68,7 @@ Planned production slice:
 - Procedural ambient audio, richer one-shot sound effects, and one sound clue puzzle with a visual echo cue.
 - Three puzzle gates: claim safe, tone panel, and name basin.
 - Four endings based on route/static level and the optional shift-clock choice.
+- Ending cards use route-specific background art.
 - Persistent ending stamps with 1/4 replay progress tracking.
 - Local ending records can be cleared from the start screen.
 - Static GitHub Pages-ready deployment.

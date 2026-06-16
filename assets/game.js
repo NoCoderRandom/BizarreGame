@@ -149,21 +149,25 @@ const staticApparitions = {
 const endingMeta = {
   clean: {
     title: "You Leave Named",
+    image: "assets/images/rain-alley.webp",
     body:
       "Morning opens like a clean wound. Behind you, the laundromat keeps spinning, but the sound is smaller now. Your name is damp, heavy, yours.",
   },
   frayed: {
     title: "You Leave Frayed",
+    image: "assets/images/rain-alley.webp",
     body:
       "The rain lets you pass, but static follows under your tongue. You keep your name. Mostly. Some nights it answers from a dryer across town.",
   },
   soft: {
     title: "You Call Yourself",
+    image: "assets/images/rain-alley.webp",
     body:
       "The payphone rings once. You answer from the other end and say your name until it fits. The sheets above unfold into a road.",
   },
   attendant: {
     title: "You Clock In",
+    image: "assets/images/shift-clock-closeup.webp",
     body:
       "You slide your restored name into the shift clock. It stamps you with a time that has no numbers. By morning, the machines are quiet because they are listening to you.",
   },
@@ -1789,6 +1793,7 @@ function win(kind) {
   const ending = document.createElement("section");
   ending.className = "ending-card";
   const endingText = endingMeta[kind];
+  ending.style.setProperty("--ending-image", `url("${endingText.image}")`);
   ending.innerHTML = `
     <div class="ending-copy">
       <p class="kicker">ending</p>

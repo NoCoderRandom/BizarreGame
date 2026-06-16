@@ -785,7 +785,7 @@ body.static-critical .message-panel {
   padding: min(7vw, 72px);
   background:
     linear-gradient(0deg, rgba(0, 0, 0, 0.86), transparent 58%),
-    url("assets/images/rain-alley.webp") center / cover no-repeat;
+    var(--ending-image, url("assets/images/rain-alley.webp")) center / cover no-repeat;
 }
 
 .ending-copy {
