@@ -1068,6 +1068,8 @@ function openSafePuzzle() {
     title: "Claim Safe",
     body:
       "The brass key turns once. Three tumblers wait for the time the laundromat keeps repeating.",
+    image: "assets/images/claim-safe-closeup.png",
+    imageAlt: "A damp brass claim safe with a key in the lock and three old number tumblers.",
     content: () => {
       const grid = document.createElement("div");
       grid.className = "dial-grid";
@@ -1185,6 +1187,8 @@ function openNamePuzzle() {
     title: "Name Basin",
     body:
       "The basin has three drains. Your tag lies between them, waiting for weight, breath, and letters.",
+    image: "assets/images/name-basin-closeup.png",
+    imageAlt: "A cracked porcelain basin with three drains, rust, a blue breath-like glow, and a damp name tag.",
     content: () => {
       const grid = document.createElement("div");
       grid.className = "stain-grid";
@@ -1321,7 +1325,7 @@ function openHint() {
   });
 }
 
-function openModal({ title, body, content, actions }) {
+function openModal({ title, body, content, actions, image, imageAlt = "" }) {
   modalRoot.innerHTML = "";
   modalRoot.hidden = false;
 
@@ -1333,6 +1337,13 @@ function openModal({ title, body, content, actions }) {
     <footer></footer>
   `;
   const section = modal.querySelector("section");
+  if (image) {
+    const art = document.createElement("img");
+    art.className = "modal-art";
+    art.src = image;
+    art.alt = imageAlt;
+    section.append(art);
+  }
   section.append(content());
   const footer = modal.querySelector("footer");
   actions.forEach((action) => {

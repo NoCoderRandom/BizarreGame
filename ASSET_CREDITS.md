@@ -2,14 +2,16 @@
 
 ## Images
 
-The three scene backgrounds in `assets/images/` were generated for this project with the built-in Codex image generation tool, using prompts for:
+The scene backgrounds and puzzle close-ups in `assets/images/` were generated for this project with the built-in Codex image generation tool, using prompts for:
 
 - `laundromat-lobby.png`
 - `dryer-shrine.png`
 - `rain-alley.png`
 - `lost-office.png`
+- `claim-safe-closeup.png`
+- `name-basin-closeup.png`
 
-The prompts requested original non-graphic psychological horror game backgrounds with no logos, no readable text, no watermark, and no third-party characters.
+The prompts requested original non-graphic psychological horror game art with no logos, no readable text, no watermark, and no third-party characters.
 
 ## Audio
 

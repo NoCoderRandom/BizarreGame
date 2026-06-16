@@ -48,6 +48,7 @@ Planned production slice:
 
 - Three original 16:9 scene backgrounds.
 - Fourth original 16:9 lost-and-found office background.
+- Original close-up art for the safe and name basin puzzle modals.
 - Large, accessible hotspot buttons.
 - Inventory with selectable strange items.
 - Inventory inspection text that doubles as diegetic hinting.

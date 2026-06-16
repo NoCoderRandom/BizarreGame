@@ -506,6 +506,16 @@ body.static-critical .message-panel {
   line-height: 1.5;
 }
 
+.modal-art {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin: 0 0 14px;
+  display: block;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  filter: contrast(1.08) saturate(0.96);
+}
+
 .journal-panel {
   display: grid;
   gap: 12px;
