@@ -24,6 +24,7 @@ test("player can start and finish the main route", async ({ page }) => {
   }
   await expect(page.locator("body")).toHaveClass(/static-rising/);
   await expect(page.locator(".meter")).toHaveAttribute("aria-label", "Static pressure 40 percent");
+  await expect(page.locator("#apparition")).not.toHaveText("");
 
   await action(page, "lost basket").click();
   await expect(item(page, "Soot")).toBeVisible();

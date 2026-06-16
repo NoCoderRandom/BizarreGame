@@ -1,5 +1,6 @@
 const sceneImage = document.querySelector("#sceneImage");
 const hotspotLayer = document.querySelector("#hotspotLayer");
+const apparitionEl = document.querySelector("#apparition");
 const stage = document.querySelector("#stage");
 const canvas = document.querySelector("#fxCanvas");
 const ctx = canvas.getContext("2d", { alpha: true });
@@ -20,6 +21,7 @@ const journalButton = document.querySelector("#journalButton");
 const hintButton = document.querySelector("#hintButton");
 const modalRoot = document.querySelector("#modalRoot");
 const actionsEl = document.querySelector("#actions");
+let apparitionTimer = null;
 
 const SAVE_KEY = "laundromat-name-save-v2";
 const ENDINGS_KEY = "laundromat-endings-v1";
@@ -107,6 +109,29 @@ const clueText = {
   vowels: "The ledger says every vowel in your name was filed away.",
   safe: "The claim safe opens with 217.",
   finalOrder: "The basin asks for weight, breath, and letters: rust, voice, vowel slip.",
+};
+
+const staticApparitions = {
+  lobby: [
+    "the glass remembers you wrong",
+    "spin cycle: name removal",
+    "someone is breathing through the coin slot",
+  ],
+  office: [
+    "claim denied",
+    "the ledger turns a page by itself",
+    "2:17 is not a time anymore",
+  ],
+  shrine: [
+    "heat makes the walls pronounce you",
+    "the dryers are almost singing",
+    "do not give it a better spelling",
+  ],
+  alley: [
+    "rain audits the body",
+    "the sheets above know every exit",
+    "answer only if it uses your name",
+  ],
 };
 
 const endingMeta = {
@@ -344,7 +369,7 @@ const scenes = {
         h: 34,
         click: () => {
           rememberClue("time217");
-          audio.whisper("two one seven");
+          whisper("two one seven");
           say("In the mirror, your reflection has no mouth. It taps the glass twice, once, then seven times.");
         },
       },
@@ -549,7 +574,7 @@ const scenes = {
         w: 33,
         h: 31,
         click: () => {
-          audio.whisper("do not fold yourself smaller");
+          whisper("do not fold yourself smaller");
           say("The hanging sheets turn in the dawn wind. For a moment, every cloth is shaped like a door.");
         },
       },
@@ -942,7 +967,7 @@ function loadGame({ audioGesture = true } = {}) {
   renderInventory();
   say(restoredMessage);
   renderStatic();
-  if (audioGesture) audio.whisper("continue");
+  if (audioGesture) whisper("continue");
   return true;
 }
 
@@ -971,6 +996,27 @@ function joltStage() {
   void stage.offsetWidth;
   stage.classList.add("is-jolting");
   window.setTimeout(() => stage.classList.remove("is-jolting"), 260);
+}
+
+function flashApparition(text) {
+  window.clearTimeout(apparitionTimer);
+  apparitionEl.textContent = text;
+  apparitionEl.classList.remove("show");
+  void apparitionEl.offsetWidth;
+  apparitionEl.classList.add("show");
+  apparitionTimer = window.setTimeout(() => {
+    apparitionEl.classList.remove("show");
+  }, 1900);
+}
+
+function whisper(text) {
+  audio.whisper(text);
+  flashApparition(text);
+}
+
+function flashStaticApparition() {
+  const lines = staticApparitions[state.scene] || staticApparitions.lobby;
+  flashApparition(lines[Math.floor(Math.random() * lines.length)]);
 }
 
 function addItem(item) {
@@ -1008,7 +1054,10 @@ function nudge(message) {
 function pulseStatic(amount) {
   state.static = Math.max(0, Math.min(100, state.static + amount));
   renderStatic();
-  if (amount >= 8) joltStage();
+  if (amount >= 8) {
+    joltStage();
+    flashStaticApparition();
+  }
   saveGame();
 }
 
@@ -1161,7 +1210,7 @@ function openSafePuzzle() {
         label: "Recall Time",
         click: () => {
           rememberClue("time217");
-          audio.whisper("two one seven");
+          whisper("two one seven");
           say("The ledger, the mirror, and the time clock all keep returning to 2:17.");
         },
       },
@@ -1290,7 +1339,7 @@ function openNamePuzzle() {
             removeItem("voice");
             removeItem("vowelSlip");
             lowerStatic(24);
-            audio.whisper("there you are");
+            whisper("there you are");
             closeModal();
             say("Rust gives the name weight. Voice gives it teeth. The vowel slip gives it a throat. The front exit unlocks.");
             window.setTimeout(() => go("lobby"), 900);
@@ -1531,7 +1580,7 @@ function startGame({ audioGesture = true } = {}) {
   startScreen.classList.add("is-hidden");
   renderStatic();
   renderScene();
-  if (audioGesture) audio.whisper("wash gently");
+  if (audioGesture) whisper("wash gently");
 }
 
 bindActivation(beginButton, () => {

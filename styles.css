@@ -229,6 +229,29 @@ a {
   pointer-events: none;
 }
 
+.apparition {
+  position: absolute;
+  left: 4%;
+  bottom: 5%;
+  z-index: 6;
+  max-width: min(62ch, 80%);
+  margin: 0;
+  padding: 8px 10px;
+  border-left: 2px solid rgba(76, 199, 206, 0.72);
+  background: rgba(0, 0, 0, 0.58);
+  color: #d9fff9;
+  font-size: clamp(0.82rem, 1.7vw, 1.06rem);
+  font-weight: 800;
+  line-height: 1.25;
+  text-shadow: 0 0 14px rgba(76, 199, 206, 0.5);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.apparition.show {
+  animation: apparition-fade 1850ms ease both;
+}
+
 .scanline {
   opacity: 0.22;
   mix-blend-mode: soft-light;
@@ -606,6 +629,27 @@ body.static-critical .message-panel {
   }
 }
 
+@keyframes apparition-fade {
+  0% {
+    opacity: 0;
+    filter: blur(7px);
+    transform: translateY(6px);
+  }
+
+  18%,
+  72% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    filter: blur(3px);
+    transform: translateY(-4px);
+  }
+}
+
 .dial-grid,
 .stain-grid {
   display: grid;
@@ -814,5 +858,16 @@ body.static-critical .message-panel {
   .message-panel {
     min-height: 72px;
     padding: 10px 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage.is-jolting,
+  .apparition.show {
+    animation: none;
+  }
+
+  .apparition.show {
+    opacity: 1;
   }
 }
