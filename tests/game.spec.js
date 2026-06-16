@@ -15,6 +15,10 @@ test("player can start and finish the main route", async ({ page }) => {
   await expect(page.locator("#startScreen")).toHaveClass(/is-hidden/);
   await expect(action(page, "lost basket")).toBeVisible();
 
+  await page.getByRole("button", { name: "Show hint" }).click();
+  await expect(page.locator(".modal")).toContainText("breathing washer");
+  await page.locator(".modal").getByRole("button", { name: "Step Back" }).click();
+
   await action(page, "lost basket").click();
   await expect(item(page, "Soot")).toBeVisible();
 
@@ -29,8 +33,24 @@ test("player can start and finish the main route", async ({ page }) => {
   await expect(page.locator("#roomTitle")).toHaveText("Lost Office");
   await action(page, "claim ledger").click();
   await expect(page.locator("#objective")).toContainText("missing vowels");
+  await page.getByRole("button", { name: "Open journal" }).click();
+  await expect(page.locator(".modal")).toContainText("2:17");
+  await expect(page.locator(".modal")).toContainText("vowel");
+  await page.locator(".modal").getByRole("button", { name: "Step Back" }).click();
   await action(page, "key rack").click();
   await expect(item(page, "Brass Key")).toBeVisible();
+
+  await page.goto("./");
+  await expect(page.getByRole("button", { name: "Continue Shift" })).toBeVisible();
+  await page.getByRole("button", { name: "Continue Shift" }).click();
+  await expect(page.locator("#startScreen")).toHaveClass(/is-hidden/);
+  await expect(page.locator("#roomTitle")).toHaveText("Lost Office");
+  await expect(item(page, "Brass Key")).toBeVisible();
+  await expect(item(page, "Black Soap")).toBeVisible();
+  await page.getByRole("button", { name: "Open journal" }).click();
+  await expect(page.locator(".modal")).toContainText("2:17");
+  await page.locator(".modal").getByRole("button", { name: "Step Back" }).click();
+
   await item(page, "Brass Key").click();
   await action(page, "claim safe").click();
 
@@ -90,4 +110,8 @@ test("player can start and finish the main route", async ({ page }) => {
 
   await action(page, "open rain").click();
   await expect(page.locator(".ending-copy h2")).toHaveText("You Leave Named");
+
+  await page.goto("./");
+  await expect(page.getByRole("link", { name: "Begin Shift" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Continue Shift" })).toBeHidden();
 });

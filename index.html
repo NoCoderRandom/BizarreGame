@@ -13,7 +13,7 @@
     <link rel="preload" as="image" href="assets/images/dryer-shrine.png">
     <link rel="preload" as="image" href="assets/images/rain-alley.png">
     <link rel="preload" as="image" href="assets/images/lost-office.png">
-    <link rel="stylesheet" href="styles.css?v=20260616e">
+    <link rel="stylesheet" href="styles.css?v=20260616f">
   </head>
   <body>
     <main id="game" class="game-shell" aria-label="The Laundromat Takes Your Name">
@@ -29,6 +29,9 @@
             <a id="beginButton" class="primary-action" href="?play=1">
               Begin Shift
             </a>
+            <button id="continueButton" class="ghost-action" type="button" hidden>
+              Continue Shift
+            </button>
             <button id="quietButton" class="ghost-action" type="button" aria-pressed="false">
               Sound On
             </button>
@@ -55,6 +58,12 @@
             </button>
             <button id="revealButton" class="icon-button" type="button" title="Reveal touch points" aria-label="Reveal touch points">
               <span aria-hidden="true">◎</span>
+            </button>
+            <button id="journalButton" class="icon-button" type="button" title="Open journal" aria-label="Open journal">
+              <span aria-hidden="true">□</span>
+            </button>
+            <button id="hintButton" class="icon-button" type="button" title="Show hint" aria-label="Show hint">
+              <span aria-hidden="true">?</span>
             </button>
           </div>
         </header>
@@ -88,6 +97,6 @@
       <div id="modalRoot" class="modal-root" hidden></div>
     </main>
 
-    <script type="module" src="assets/game.js?v=20260616g"></script>
+    <script type="module" src="assets/game.js?v=20260616h"></script>
   </body>
 </html>

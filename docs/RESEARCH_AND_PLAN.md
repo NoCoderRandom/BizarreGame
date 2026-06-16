@@ -52,6 +52,8 @@ Planned production slice:
 - Inventory with selectable strange items.
 - Optional hotspot reveal mode.
 - Objective text that updates with the current puzzle goal.
+- Contextual hint button and clue journal for puzzle recall.
+- In-browser checkpoint saving with a continue option.
 - Procedural ambient audio and one sound clue puzzle.
 - Three puzzle gates: claim safe, tone panel, and name basin.
 - Multiple endings based on route/static level.

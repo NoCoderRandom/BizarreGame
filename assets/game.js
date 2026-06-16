@@ -10,11 +10,35 @@ const messageEl = document.querySelector("#message");
 const staticFill = document.querySelector("#staticFill");
 const startScreen = document.querySelector("#startScreen");
 const beginButton = document.querySelector("#beginButton");
+const continueButton = document.querySelector("#continueButton");
 const quietButton = document.querySelector("#quietButton");
 const muteButton = document.querySelector("#muteButton");
 const revealButton = document.querySelector("#revealButton");
+const journalButton = document.querySelector("#journalButton");
+const hintButton = document.querySelector("#hintButton");
 const modalRoot = document.querySelector("#modalRoot");
 const actionsEl = document.querySelector("#actions");
+
+const SAVE_KEY = "laundromat-name-save-v2";
+const DEFAULT_MESSAGE = "The machines wait with their round black eyes.";
+
+const defaultFlags = {
+  started: false,
+  quiet: false,
+  washerOpened: false,
+  vendingUsed: false,
+  backUnlocked: false,
+  officeUnlocked: false,
+  ledgerRead: false,
+  safeOpen: false,
+  radioHeard: false,
+  radioCaptured: false,
+  shrineAwake: false,
+  toneSolved: false,
+  dryerFed: false,
+  nameRestored: false,
+  escaped: false,
+};
 
 const itemMeta = {
   wetCoin: { label: "Wet Coin", color: "#b5d7d2" },
@@ -32,26 +56,18 @@ const state = {
   scene: "lobby",
   items: new Set(),
   selectedItem: null,
-  flags: {
-    started: false,
-    quiet: false,
-    washerOpened: false,
-    vendingUsed: false,
-    backUnlocked: false,
-    officeUnlocked: false,
-    ledgerRead: false,
-    safeOpen: false,
-    radioHeard: false,
-    radioCaptured: false,
-    shrineAwake: false,
-    toneSolved: false,
-    dryerFed: false,
-    nameRestored: false,
-    escaped: false,
-  },
+  flags: { ...defaultFlags },
+  clues: new Set(),
   static: 8,
-  message:
-    "The machines wait with their round black eyes.",
+  message: DEFAULT_MESSAGE,
+};
+
+const clueText = {
+  radioTune: "The radio repeats the notes: low, high, middle.",
+  time217: "The lost office keeps repeating 2:17.",
+  vowels: "The ledger says every vowel in your name was filed away.",
+  safe: "The claim safe opens with 217.",
+  finalOrder: "The basin asks for weight, breath, and letters: rust, voice, vowel slip.",
 };
 
 const scenes = {
@@ -116,6 +132,7 @@ const scenes = {
         h: 13,
         click: () => {
           state.flags.radioHeard = true;
+          rememberClue("radioTune");
           audio.radioClue();
           if (state.flags.toneSolved && !state.flags.radioCaptured) {
             state.flags.radioCaptured = true;
@@ -223,6 +240,8 @@ const scenes = {
         h: 14,
         click: () => {
           state.flags.ledgerRead = true;
+          rememberClue("vowels");
+          rememberClue("time217");
           lowerStatic(4);
           say("Your name appears in the ledger with every vowel filed away. The clerk's note repeats one time: 2:17.");
         },
@@ -235,6 +254,8 @@ const scenes = {
         w: 10,
         h: 18,
         click: () => {
+          rememberClue("time217");
+          rememberClue("radioTune");
           audio.toneAnswer();
           say("The time clock punches an invisible card: 2:17 AM. Low, high, middle follows from inside the gears.");
         },
@@ -264,6 +285,7 @@ const scenes = {
         w: 19,
         h: 34,
         click: () => {
+          rememberClue("time217");
           audio.whisper("two one seven");
           say("In the mirror, your reflection has no mouth. It taps the glass twice, once, then seven times.");
         },
@@ -415,6 +437,7 @@ const scenes = {
             return;
           }
           if (state.items.has("nameTag") && state.items.has("rust") && state.items.has("voice") && state.items.has("vowelSlip")) {
+            rememberClue("finalOrder");
             openNamePuzzle();
             return;
           }
@@ -690,16 +713,137 @@ function bindActivation(element, handler) {
   });
 }
 
+function resetGameState() {
+  state.scene = "lobby";
+  state.items = new Set();
+  state.selectedItem = null;
+  state.flags = { ...defaultFlags };
+  state.clues = new Set();
+  state.static = 8;
+  state.message = DEFAULT_MESSAGE;
+}
+
+function readStoredSave() {
+  try {
+    const raw = window.localStorage?.getItem(SAVE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function hasStoredSave() {
+  try {
+    return Boolean(window.localStorage?.getItem(SAVE_KEY));
+  } catch {
+    return false;
+  }
+}
+
+function updateContinueButton() {
+  continueButton.hidden = !hasStoredSave();
+}
+
+function saveGame() {
+  if (!state.flags.started || state.flags.escaped) return;
+  try {
+    window.localStorage?.setItem(
+      SAVE_KEY,
+      JSON.stringify({
+        scene: state.scene,
+        items: [...state.items],
+        selectedItem: state.selectedItem,
+        flags: { ...state.flags },
+        clues: [...state.clues],
+        static: state.static,
+        message: state.message,
+      }),
+    );
+  } catch {
+    return;
+  }
+  updateContinueButton();
+}
+
+function clearSave() {
+  try {
+    window.localStorage?.removeItem(SAVE_KEY);
+  } catch {
+    // Browsers can reject storage in private modes; the game should still run.
+  }
+  updateContinueButton();
+}
+
+function hydrateState(save) {
+  if (!save || typeof save !== "object") return false;
+  const savedItems = Array.isArray(save.items)
+    ? save.items.filter((item) => itemMeta[item])
+    : [];
+  const savedClues = Array.isArray(save.clues)
+    ? save.clues.filter((clue) => clueText[clue])
+    : [];
+  const savedStatic = Number(save.static);
+
+  state.scene = scenes[save.scene] ? save.scene : "lobby";
+  state.items = new Set(savedItems);
+  state.selectedItem = savedItems.includes(save.selectedItem) ? save.selectedItem : null;
+  state.flags = {
+    ...defaultFlags,
+    ...(save.flags && typeof save.flags === "object" ? save.flags : {}),
+    started: true,
+    escaped: false,
+  };
+  state.clues = new Set(savedClues);
+  state.static = Number.isFinite(savedStatic)
+    ? Math.max(0, Math.min(100, savedStatic))
+    : 8;
+  state.message = typeof save.message === "string" ? save.message : scenes[state.scene].entry;
+  return true;
+}
+
+function loadGame({ audioGesture = true } = {}) {
+  const save = readStoredSave();
+  if (!hydrateState(save)) {
+    clearSave();
+    return false;
+  }
+  if (audioGesture) {
+    try {
+      audio.start();
+    } catch {
+      audio.setMuted(true);
+    }
+  }
+  audio.setMuted(state.flags.quiet);
+  startScreen.classList.add("is-hidden");
+  const restoredMessage = state.message;
+  renderScene();
+  renderInventory();
+  say(restoredMessage);
+  staticFill.style.width = `${state.static}%`;
+  if (audioGesture) audio.whisper("continue");
+  return true;
+}
+
+function rememberClue(clue) {
+  if (!clueText[clue]) return;
+  const isNew = !state.clues.has(clue);
+  state.clues.add(clue);
+  if (isNew) saveGame();
+}
+
 function addItem(item) {
   state.items.add(item);
   state.selectedItem = item;
   renderInventory();
+  saveGame();
 }
 
 function removeItem(item) {
   state.items.delete(item);
   if (state.selectedItem === item) state.selectedItem = null;
   renderInventory();
+  saveGame();
 }
 
 function consumeSelected(item) {
@@ -711,6 +855,7 @@ function consumeSelected(item) {
 function say(message) {
   state.message = message;
   messageEl.textContent = message;
+  saveGame();
 }
 
 function nudge(message) {
@@ -722,11 +867,13 @@ function nudge(message) {
 function pulseStatic(amount) {
   state.static = Math.max(0, Math.min(100, state.static + amount));
   staticFill.style.width = `${state.static}%`;
+  saveGame();
 }
 
 function lowerStatic(amount) {
   state.static = Math.max(0, Math.min(100, state.static - amount));
   staticFill.style.width = `${state.static}%`;
+  saveGame();
 }
 
 function currentObjective() {
@@ -771,6 +918,7 @@ function renderInventory() {
     bindActivation(button, () => {
       state.selectedItem = item;
       audio.click();
+      saveGame();
       renderInventory();
     });
     inventoryEl.append(button);
@@ -866,6 +1014,7 @@ function openSafePuzzle() {
       {
         label: "Recall Time",
         click: () => {
+          rememberClue("time217");
           audio.whisper("two one seven");
           say("The ledger, the mirror, and the time clock all keep returning to 2:17.");
         },
@@ -876,6 +1025,7 @@ function openSafePuzzle() {
         click: () => {
           if (digits.join("") === "217") {
             state.flags.safeOpen = true;
+            rememberClue("safe");
             removeItem("brassKey");
             addItem("vowelSlip");
             lowerStatic(10);
@@ -923,7 +1073,10 @@ function openTonePuzzle() {
     actions: [
       {
         label: "Play Memory",
-        click: () => audio.radioClue(),
+        click: () => {
+          rememberClue("radioTune");
+          audio.radioClue();
+        },
       },
       {
         label: "Set Dials",
@@ -948,6 +1101,7 @@ function openTonePuzzle() {
 }
 
 function openNamePuzzle() {
+  rememberClue("finalOrder");
   const chosen = [];
   const order = ["rust", "voice", "vowelSlip"];
   const choices = ["voice", "vowelSlip", "rust"];
@@ -1005,6 +1159,76 @@ function openNamePuzzle() {
   });
 }
 
+function currentHint() {
+  if (!state.flags.started) return "Begin the shift and search the lobby from left to right.";
+  if (!state.flags.washerOpened) return "The breathing washer has something loose in its rubber lip.";
+  if (!state.flags.vendingUsed) return "Select the Wet Coin, then use it on the soap machine.";
+  if (!state.flags.safeOpen) {
+    if (state.scene !== "office") return "Use the claim ticket at the lost office window in the lobby.";
+    if (!state.flags.ledgerRead) return "Read the claim ledger. It tells you what the office stole and which time matters.";
+    if (!state.items.has("brassKey")) return "Take the warm brass key from the rack before dealing with the safe.";
+    return "Select the Brass Key, open the claim safe, and enter the time the office keeps repeating.";
+  }
+  if (!state.flags.backUnlocked) return "Select the Black Soap, then use it on the red back door.";
+  if (!state.flags.dryerFed) return "The central dryer wants a dark stain. Select Soot before touching it.";
+  if (!state.items.has("nameTag")) return "After feeding the dryer, take the dangling name tag.";
+  if (!state.flags.toneSolved) return "The three-note panel wants the radio pattern: low, high, middle.";
+  if (!state.flags.radioCaptured) return "Return to the lobby radio after solving the panel.";
+  if (!state.flags.nameRestored) return "At the name basin, place the pieces in this order: Rust, Voice, Vowel Slip.";
+  if (state.scene !== "alley") return "The front exit will now let you leave.";
+  return "The open rain gives the clean ending; the payphone gives a stranger one.";
+}
+
+function openJournal() {
+  openModal({
+    title: "Shift Journal",
+    body: "Your damp notes collect the parts of the laundromat that keep repeating.",
+    content: () => {
+      const panel = document.createElement("div");
+      panel.className = "journal-panel";
+
+      const objective = document.createElement("p");
+      objective.className = "journal-meta";
+      objective.textContent = `Next: ${currentObjective()}`;
+      panel.append(objective);
+
+      const entries = [...state.clues].map((clue) => clueText[clue]);
+      if (!entries.length) {
+        const empty = document.createElement("p");
+        empty.className = "journal-empty";
+        empty.textContent = "No clues logged yet. Touch odd things and the room will start telling on itself.";
+        panel.append(empty);
+        return panel;
+      }
+
+      const list = document.createElement("ul");
+      list.className = "journal-list";
+      entries.forEach((entry) => {
+        const item = document.createElement("li");
+        item.textContent = entry;
+        list.append(item);
+      });
+      panel.append(list);
+      return panel;
+    },
+    actions: [],
+  });
+}
+
+function openHint() {
+  openModal({
+    title: "Counter Hint",
+    body: currentHint(),
+    content: () => {
+      const note = document.createElement("p");
+      note.className = "journal-meta";
+      note.textContent = `Objective: ${currentObjective()}`;
+      return note;
+    },
+    actions: [],
+  });
+}
+
 function openModal({ title, body, content, actions }) {
   modalRoot.innerHTML = "";
   modalRoot.hidden = false;
@@ -1045,6 +1269,7 @@ function closeModal() {
 function win(kind) {
   if (state.flags.escaped) return;
   state.flags.escaped = true;
+  clearSave();
   audio.ending();
   const ending = document.createElement("section");
   ending.className = "ending-card";
@@ -1151,7 +1376,18 @@ function startGame({ audioGesture = true } = {}) {
 }
 
 bindActivation(beginButton, () => {
+  const quiet = state.flags.quiet;
+  clearSave();
+  resetGameState();
+  state.flags.quiet = quiet;
   startGame();
+  if (window.history?.replaceState) {
+    window.history.replaceState(null, "", window.location.pathname);
+  }
+});
+
+bindActivation(continueButton, () => {
+  loadGame();
   if (window.history?.replaceState) {
     window.history.replaceState(null, "", window.location.pathname);
   }
@@ -1160,6 +1396,7 @@ bindActivation(beginButton, () => {
 bindActivation(quietButton, () => {
   state.flags.quiet = !state.flags.quiet;
   audio.setMuted(state.flags.quiet);
+  saveGame();
 });
 
 bindActivation(muteButton, () => {
@@ -1170,6 +1407,16 @@ bindActivation(revealButton, () => {
   stage.classList.toggle("revealing");
   revealButton.classList.toggle("active", stage.classList.contains("revealing"));
   audio.click();
+});
+
+bindActivation(journalButton, () => {
+  audio.click();
+  openJournal();
+});
+
+bindActivation(hintButton, () => {
+  audio.click();
+  openHint();
 });
 
 window.addEventListener("resize", resizeCanvas);
@@ -1184,11 +1431,13 @@ window.addEventListener("keydown", (event) => {
 resizeCanvas();
 renderInventory();
 staticFill.style.width = `${state.static}%`;
+updateContinueButton();
 requestAnimationFrame(animate);
 
 const params = new URLSearchParams(window.location.search);
 
 if (params.has("autostart") || params.has("play")) {
+  clearSave();
   window.setTimeout(() => startGame({ audioGesture: false }), 120);
 }
 

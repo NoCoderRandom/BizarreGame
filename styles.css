@@ -482,6 +482,31 @@ a {
   line-height: 1.5;
 }
 
+.journal-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.journal-meta,
+.journal-empty {
+  margin: 0;
+  color: #d4ccba;
+  font-size: 0.95rem;
+}
+
+.journal-meta {
+  color: #f4dc9b;
+}
+
+.journal-list {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 8px;
+  color: #f3ead7;
+  line-height: 1.45;
+}
+
 .dial-grid,
 .stain-grid {
   display: grid;
