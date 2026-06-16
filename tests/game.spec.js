@@ -78,6 +78,10 @@ test("player can start and finish the main route", async ({ page }) => {
   await safeModal.getByRole("button", { name: "Open Safe" }).click();
   await expect(item(page, "Vowel Slip")).toBeVisible();
 
+  await action(page, "cloudy sink").click();
+  await expect(page.locator(".meter")).toHaveAttribute("aria-label", "Static pressure 22 percent");
+  await expect(page.locator("#message")).toContainText("rinses static");
+
   await action(page, "lobby window").click();
   await expect(page.locator("#roomTitle")).toHaveText("Lobby");
 

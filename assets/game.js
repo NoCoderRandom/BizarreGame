@@ -34,9 +34,10 @@ const defaultFlags = {
   vendingUsed: false,
   backUnlocked: false,
   officeUnlocked: false,
-  ledgerRead: false,
-  safeOpen: false,
-  radioHeard: false,
+    ledgerRead: false,
+    safeOpen: false,
+    sinkRinsed: false,
+    radioHeard: false,
   radioCaptured: false,
   shrineAwake: false,
   toneSolved: false,
@@ -401,6 +402,13 @@ const scenes = {
         h: 24,
         click: () => {
           if (state.items.has("vowelSlip")) {
+            if (!state.flags.sinkRinsed && state.static > 8) {
+              state.flags.sinkRinsed = true;
+              lowerStatic(8);
+              whisper("not clean. quieter.");
+              say("The cloudy sink rinses static from the vowel slip. Your reflection grows less jagged around the mouth.");
+              return;
+            }
             say("The sink water reflects your name with its vowels back in place, then pretends it did not.");
             return;
           }
@@ -1365,6 +1373,9 @@ function currentHint() {
     if (!state.flags.ledgerRead) return "Read the claim ledger. It tells you what the office stole and which time matters.";
     if (!state.items.has("brassKey")) return "Take the warm brass key from the rack before dealing with the safe.";
     return "Select the Brass Key, open the claim safe, and enter the time the office keeps repeating.";
+  }
+  if (state.scene === "office" && state.items.has("vowelSlip") && !state.flags.sinkRinsed && state.static > 20) {
+    return "The cloudy sink can rinse some static from the vowel slip before you leave the office.";
   }
   if (!state.flags.backUnlocked) return "Select the Black Soap, then use it on the red back door.";
   if (!state.flags.dryerFed) return "The central dryer wants a dark stain. Select Soot before touching it.";

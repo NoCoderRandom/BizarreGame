@@ -57,6 +57,7 @@ Planned production slice:
 - Contextual hint button and clue journal for puzzle recall.
 - In-browser checkpoint saving with a continue option.
 - Static pressure affects visuals and procedural ambience.
+- Optional cloudy sink rinse gives players one static-pressure recovery.
 - Whisper/static apparition captions for atmosphere and sound-off readability.
 - Procedural ambient audio and one sound clue puzzle.
 - Three puzzle gates: claim safe, tone panel, and name basin.
