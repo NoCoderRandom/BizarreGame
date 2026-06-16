@@ -12,6 +12,7 @@ The scene backgrounds and puzzle close-ups in `assets/images/` were generated fo
 - `claim-safe-closeup.webp`
 - `tone-panel-closeup.webp`
 - `name-basin-closeup.webp`
+- `shift-clock-closeup.webp`
 
 The prompts requested original non-graphic psychological horror game art with no logos, no readable text, no watermark, and no third-party characters.
 

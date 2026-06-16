@@ -49,7 +49,7 @@ Planned production slice:
 - Three original 16:9 scene backgrounds.
 - Fourth original 16:9 lost-and-found office background.
 - Fifth optional 16:9 boiler closet background and side room.
-- Original close-up art for the safe, tone panel, and name basin puzzle modals.
+- Original close-up art for the safe, tone panel, name basin, and shift clock modals.
 - Optimized WebP art assets for faster GitHub Pages loading.
 - Large, accessible hotspot buttons.
 - Dynamic descriptive alt text for each scene image.

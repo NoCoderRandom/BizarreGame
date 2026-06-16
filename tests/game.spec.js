@@ -307,6 +307,7 @@ test("player can find the shift clock ending", async ({ page }) => {
   await action(page, "shift clock").click();
   const clockModal = page.locator(".modal");
   await expect(clockModal).toContainText("Shift Clock");
+  await expect(clockModal.locator(".modal-art")).toHaveAttribute("src", /shift-clock-closeup\.webp/);
   await clockModal.getByRole("button", { name: "Punch Card" }).click();
   await expect(page.locator(".ending-copy h2")).toHaveText("You Clock In");
   await expect(page.locator(".ending-record")).toContainText("Ending recorded 1/4");

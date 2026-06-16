@@ -1624,6 +1624,8 @@ function openClockEnding() {
     title: "Shift Clock",
     body:
       "The punch slot opens like it has been expecting your restored name. The card inside is blank except for tomorrow's date and your handwriting.",
+    image: "assets/images/shift-clock-closeup.webp",
+    imageAlt: "A grimy laundromat shift clock with a blank punch card inserted into a dark slot under an old clock face.",
     content: () => {
       const note = document.createElement("p");
       note.className = "journal-meta";
